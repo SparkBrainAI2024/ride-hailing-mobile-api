@@ -18,9 +18,6 @@ export class CoreUserDetails {
 
   @Field()
   language: string;
-
-  @Field()
-  loginAs: string;
 }
 
 @ObjectType()
