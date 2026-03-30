@@ -52,11 +52,6 @@ export class SignUpInput {
   @MinLength(3)
   @MaxLength(10)
   lastName: string;
-
-  @Field(() => [String])
-  @IsNotEmpty()
-  @IsIn(Object.values(roles), { each: true })
-  loginAs: roles[];
 }
 
 @InputType()

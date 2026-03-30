@@ -14,7 +14,7 @@ export const USER = {
   NOT_FOUND: "User not found.",
   USER_ALREADY_VERIFIED: "User is already verified.",
   INVALID_OTP: "Invalid or expired otp.",
-  USER_CREATED: "User created successfully.",
+  USER_CREATED: "We have sent a otp in your email, please verify your email.",
   OTP_SEND: "OTP send successfully.",
   USER_VERIFICATION_SUCCESS: "User verification succeeded.",
   PASSWORD_UPDATED: "Password updated.",

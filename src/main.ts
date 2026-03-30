@@ -7,6 +7,7 @@ import { HttpExceptionFilter } from "./common/exceptions/error.exception";
 import { join } from "path";
 import * as compression from "compression";
 import helmet from "helmet";
+import { GraphQLError } from "graphql";
 
 async function bootstrap() {
   const appOptions = { cors: true };
@@ -41,53 +42,6 @@ async function bootstrap() {
     }),
   );
   app.use(compression());
-
-  // app.useGlobalPipes(
-  //   new ValidationPipe({
-  //     skipMissingProperties: true,
-  //     exceptionFactory: (errors) => {
-  //       const message = [];
-  //       errors.map((error) => {
-  //         message.push(Object.values(error.constraints));
-  //       });
-  //       return new BadRequestException(message[0][0]);
-  //     },
-  //   })
-  // );
-
-  app.useGlobalPipes(
-    new ValidationPipe({
-      skipMissingProperties: true,
-      whitelist: true,
-      forbidNonWhitelisted: false,
-      transform: true,
-      transformOptions: { enableImplicitConversion: true },
-      exceptionFactory: (errors) => {
-        const extractMessages = (validationErrors) => {
-          const messages = [];
-
-          for (const error of validationErrors) {
-            // collect messages from this level
-            if (error.constraints) {
-              messages.push(...Object.values(error.constraints));
-            }
-
-            // recursively collect from children (nested DTOs)
-            if (error.children && error.children.length > 0) {
-              messages.push(...extractMessages(error.children));
-            }
-          }
-
-          return messages;
-        };
-
-        const messages = extractMessages(errors);
-
-        // Return first error message (like your original version)
-        return new BadRequestException(messages[0] || "Invalid input data.");
-      },
-    }),
-  );
 
   app.useStaticAssets(join(__dirname, "..", "files"), {
     prefix: "/files/",

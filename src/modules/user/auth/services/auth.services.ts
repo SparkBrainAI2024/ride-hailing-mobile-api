@@ -40,28 +40,34 @@ export class AuthService {
     private readonly userVerificationRepository: UserVerificationRepository,
     private readonly mailService: MailService,
     private readonly deviceRepository: DeviceRepository,
-    private readonly userDetailsRepository: UserDetailsRepository
+    private readonly userDetailsRepository: UserDetailsRepository,
   ) {}
 
   async signup(createUserInput: SignUpInput, lang: string) {
     try {
-      const { email, password, firstName, lastName, loginAs } = createUserInput;
+      const { email, password, firstName, lastName } = createUserInput;
       const userExistWithThisEmail =
         await this.userRepository.findByEmail(email);
-      if (userExistWithThisEmail) {
+      if (userExistWithThisEmail?.verified) {
         ErrorException(null, "USER.USED_EMAIL", HttpStatus.BAD_REQUEST);
       }
       const verificationCode = GenerateRandomDigit(userOtpSalt);
+      if (userExistWithThisEmail && !userExistWithThisEmail.verified) {
+        await this.mailService.sendUserConfirmation(email, verificationCode);
+        await this.userVerificationRepository.sendEmailVerificationOtp(
+          userExistWithThisEmail._id,
+          verificationCode,
+        );
+        return { message: Message(lang, "USER.USER_CREATED"), success: true };
+      }
       const sendMail = await this.mailService.sendUserConfirmation(
         email,
-        verificationCode
+        verificationCode,
       );
       if (sendMail) {
         const user: UserDocument = await this.userRepository.create({
           email,
           password,
-          roles: loginAs,
-          loginAs,
         });
         await this.userDetailsRepository.create({
           userId: user._id,
@@ -70,21 +76,21 @@ export class AuthService {
         });
         await this.userVerificationRepository.sendEmailVerificationOtp(
           user._id,
-          verificationCode
+          verificationCode,
         );
         return { message: Message(lang, "USER.USER_CREATED"), success: true };
       } else {
         ErrorException(
           null,
           "USER.CAN_NOT_SEND_MAIL",
-          HttpStatus.INTERNAL_SERVER_ERROR
+          HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
     } catch (e) {
       ErrorException(
         e,
         "COMMON.INTERNAL_SERVER_ERROR",
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -104,7 +110,11 @@ export class AuthService {
       }
       const checkPassword = await comparePassword(password, user.password);
       if (!checkPassword) {
-        ErrorException(null, "USER.INCORRECT_PASSWORD", HttpStatus.BAD_REQUEST);
+        ErrorException(
+          null,
+          "USER.INCORRECT_PASSWORD",
+          HttpStatus.UNAUTHORIZED,
+        );
       }
       if (user.suspended) {
         ErrorException(null, "USER.SUSPENDED", HttpStatus.UNAUTHORIZED);
@@ -113,7 +123,7 @@ export class AuthService {
         { _id: user._id },
         {
           lastLogin: UTCTime(),
-        }
+        },
       );
       const accessTokenData = {
         id: user._id,
@@ -132,18 +142,19 @@ export class AuthService {
       const refreshToken = await generateToken(
         refreshTokenData,
         JWT_SECRET_KEY,
-        { expiresIn: REFRESH_TOKEN_LIFE }
+        { expiresIn: REFRESH_TOKEN_LIFE },
       );
+
       if (device) {
         const { deviceId, firebaseToken, deviceType } = device;
         await this.deviceRepository.addDevice(
           user._id,
           deviceId,
           firebaseToken,
-          deviceType
+          deviceType,
         );
       }
-      return {
+      const result = {
         user: {
           _id: user._id,
           email: user.email,
@@ -169,18 +180,20 @@ export class AuthService {
         accessToken,
         refreshToken,
       };
+      console.log(result);
+      return result;
     } catch (e) {
       ErrorException(
         e,
         "COMMON.INTERNAL_SERVER_ERROR",
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
   async sendVerifyEmailOtp(
     sendOtpInput: SendVerifyEmailOTPInput,
-    lang: string
+    lang: string,
   ) {
     try {
       const { email } = sendOtpInput;
@@ -191,26 +204,26 @@ export class AuthService {
       const verificationCode = GenerateRandomDigit(userOtpSalt);
       const sendMail = await this.mailService.sendUserConfirmation(
         email,
-        verificationCode
+        verificationCode,
       );
       if (sendMail) {
         await this.userVerificationRepository.sendEmailVerificationOtp(
           user._id,
-          verificationCode
+          verificationCode,
         );
         return { message: Message(lang, "USER.OTP_SEND"), success: true };
       } else {
         ErrorException(
           null,
           "USER.CAN_NOT_SEND_MAIL",
-          HttpStatus.INTERNAL_SERVER_ERROR
+          HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
     } catch (e) {
       ErrorException(
         e,
         "COMMON.INTERNAL_SERVER_ERROR",
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -227,7 +240,7 @@ export class AuthService {
         ErrorException(
           null,
           "USER.USER_ALREADY_VERIFIED",
-          HttpStatus.BAD_REQUEST
+          HttpStatus.BAD_REQUEST,
         );
       }
       const code = await this.userVerificationRepository.findOne({
@@ -242,7 +255,7 @@ export class AuthService {
         { _id: user._id },
         {
           verified: true,
-        }
+        },
       );
       await this.userVerificationRepository.deleteOtpById(code._id);
       return {
@@ -253,14 +266,14 @@ export class AuthService {
       ErrorException(
         e,
         "COMMON.INTERNAL_SERVER_ERROR",
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
   async verifyResetPasswordOTP(
     verifyOTPlInput: VerifyResetPasswordOTPInput,
-    lang: string
+    lang: string,
   ) {
     try {
       const { email, otp } = verifyOTPlInput;
@@ -283,7 +296,7 @@ export class AuthService {
           type: tokenTypes.resetPasswordToken,
         },
         JWT_SECRET_KEY,
-        { expiresIn: RESET_PASSWORD_TOKEN_LIFE }
+        { expiresIn: RESET_PASSWORD_TOKEN_LIFE },
       );
       await this.userVerificationRepository.deleteOtpById(code._id);
       return {
@@ -295,7 +308,7 @@ export class AuthService {
       ErrorException(
         e,
         "COMMON.INTERNAL_SERVER_ERROR",
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -304,7 +317,7 @@ export class AuthService {
     try {
       const verifiedToken = await verifyToken(
         refreshTokenInput,
-        JWT_SECRET_KEY
+        JWT_SECRET_KEY,
       );
       if (!verifiedToken) {
         ErrorException(null, "COMMON.INVALID_TOKEN", HttpStatus.BAD_REQUEST);
@@ -329,7 +342,7 @@ export class AuthService {
         { _id: user._id },
         {
           lastLogin: UTCTime(),
-        }
+        },
       );
       const accessTokenData = {
         id: user._id,
@@ -348,7 +361,7 @@ export class AuthService {
       const refreshToken = await generateToken(
         refreshTokenData,
         JWT_SECRET_KEY,
-        { expiresIn: REFRESH_TOKEN_LIFE }
+        { expiresIn: REFRESH_TOKEN_LIFE },
       );
       return {
         user: {
@@ -380,7 +393,7 @@ export class AuthService {
       ErrorException(
         e,
         "COMMON.INTERNAL_SERVER_ERROR",
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -391,7 +404,7 @@ export class AuthService {
 
       const verifiedToken = await verifyToken(
         resetPasswordToken,
-        JWT_SECRET_KEY
+        JWT_SECRET_KEY,
       );
       if (!verifiedToken) {
         ErrorException(null, "COMMON.INVALID_TOKEN", HttpStatus.BAD_REQUEST);
@@ -410,14 +423,14 @@ export class AuthService {
       }
       await this.userRepository.updateOne(
         { _id: user._id },
-        { password: await hashPassword(password, passwordSalt) }
+        { password: await hashPassword(password, passwordSalt) },
       );
       return { message: Message(lang, "USER.PASSWORD_UPDATED"), success: true };
     } catch (e) {
       ErrorException(
         e,
         "COMMON.INTERNAL_SERVER_ERROR",
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

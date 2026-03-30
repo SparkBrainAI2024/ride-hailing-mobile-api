@@ -12,6 +12,7 @@ import { tokenTypes } from "src/config/variable";
 import { User, UserDocument } from "src/schema/user/user.schema";
 import { verifyToken } from "../utils/jwt";
 import { language } from "src/schema/user/user-enum";
+import { GqlExecutionContext } from "@nestjs/graphql";
 
 export const X_Auth_Header = "x-auth-token";
 export const LANG_HEADER = "lang";
@@ -20,11 +21,13 @@ export const LANG_HEADER = "lang";
 export class AuthGuard implements CanActivate {
   constructor(
     @InjectModel(User.name)
-    private readonly userModel: Model<UserDocument>
+    private readonly userModel: Model<UserDocument>,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
+    const ctx = GqlExecutionContext.create(context);
+    const request = ctx.getContext().req;
+
     let token = request.headers[X_Auth_Header];
     if (request && request.headers && request.headers[LANG_HEADER]) {
       request.lang =
@@ -37,13 +40,13 @@ export class AuthGuard implements CanActivate {
       if (!isVerifiedToken) {
         throw new HttpException(
           "COMMON.INVALID_TOKEN",
-          HttpStatus.UNAUTHORIZED
+          HttpStatus.UNAUTHORIZED,
         );
       }
       if (isVerifiedToken.type !== tokenTypes.accessToken) {
         throw new HttpException(
           "COMMON.INVALID_TOKEN",
-          HttpStatus.UNAUTHORIZED
+          HttpStatus.UNAUTHORIZED,
         );
       }
       if (isVerifiedToken.sessionId) {
@@ -57,7 +60,7 @@ export class AuthGuard implements CanActivate {
       if (!haveUser) {
         throw new HttpException(
           "COMMON.USER_NOT_FOUND",
-          HttpStatus.UNAUTHORIZED
+          HttpStatus.UNAUTHORIZED,
         );
       }
       if (haveUser.suspended) {
@@ -66,7 +69,7 @@ export class AuthGuard implements CanActivate {
       if (!haveUser.verified) {
         throw new HttpException(
           "COMMON.USER_NOT_VERIFIED",
-          HttpStatus.UNAUTHORIZED
+          HttpStatus.UNAUTHORIZED,
         );
       }
       request.user = haveUser;
@@ -82,11 +85,13 @@ export class AuthGuard implements CanActivate {
 export class LangGuard implements CanActivate {
   constructor(
     @InjectModel(User.name)
-    private readonly userModel: Model<UserDocument>
+    private readonly userModel: Model<UserDocument>,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
+    const ctx = GqlExecutionContext.create(context);
+    const request = ctx.getContext().req;
+
     let defaultLanguage = language.NP;
     let token = request.headers[X_Auth_Header];
 

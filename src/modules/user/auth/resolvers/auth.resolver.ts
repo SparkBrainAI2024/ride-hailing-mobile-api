@@ -37,7 +37,7 @@ export class AuthResolver {
   }
 
   @Mutation(() => SignInResponse)
-  signIn(@Args("input") input: SignInInput) {
+  async signIn(@Args("input") input: SignInInput) {
     return this.authService.signIn(input);
   }
 
