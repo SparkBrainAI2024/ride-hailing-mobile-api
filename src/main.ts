@@ -1,7 +1,6 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { ValidationPipe } from "@nestjs/common";
+import { NestExpressApplication, ExpressAdapter } from "@nestjs/platform-express";
 import { HttpExceptionFilter } from "./common/exceptions/error.exception";
 import { join } from "path";
 import * as compression from "compression";
@@ -16,7 +15,7 @@ async function bootstrap() {
   if (!cachedServer) {
     const app = await NestFactory.create<NestExpressApplication>(
       AppModule,
-      new (require("@nestjs/platform-express").ExpressAdapter)(server),
+      new ExpressAdapter(server),
     );
 
     app.enableCors({
@@ -24,14 +23,6 @@ async function bootstrap() {
         "https://ridehailing.com",
         "https://www.ridehailing.com",
         "http://localhost:3000",
-      ],
-      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-      allowedHeaders: [
-        "Content-Type",
-        "Authorization",
-        "X-Requested-With",
-        "Accept",
-        "Origin",
       ],
       credentials: true,
     });
@@ -60,8 +51,8 @@ async function bootstrap() {
   return cachedServer;
 }
 
-// ✅ THIS is what Vercel needs
-export const handler = async (req, res) => {
+// ✅ FINAL FIX
+export default async function handler(req, res) {
   const server = await bootstrap();
   return server(req, res);
-};
+}
