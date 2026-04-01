@@ -1,52 +1,67 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
-import { PORT } from "./config";
 import { NestExpressApplication } from "@nestjs/platform-express";
-import { BadRequestException, ValidationPipe } from "@nestjs/common";
+import { ValidationPipe } from "@nestjs/common";
 import { HttpExceptionFilter } from "./common/exceptions/error.exception";
 import { join } from "path";
 import * as compression from "compression";
 import helmet from "helmet";
-import { GraphQLError } from "graphql";
+import serverlessExpress from "@vendia/serverless-express";
+import express from "express";
+
+const server = express();
+let cachedServer;
 
 async function bootstrap() {
-  const appOptions = { cors: true };
-  const app = await NestFactory.create<NestExpressApplication>(
-    AppModule,
-    appOptions,
-  );
-  app.enableCors({
-    origin: [
-      "https://ridehailing.com", // your production domain
-      "https://www.ridehailing.com", // with www if applicable
-      "http://localhost:3000", // for local frontend testing
-    ],
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: [
-      "Content-Type",
-      "Authorization",
-      "X-Requested-With",
-      "Accept",
-      "Origin",
-    ],
-    credentials: true, // if you send cookies or Authorization headers
-  });
+  if (!cachedServer) {
+    const app = await NestFactory.create<NestExpressApplication>(
+      AppModule,
+      new (require("@nestjs/platform-express").ExpressAdapter)(server),
+    );
 
-  app.setGlobalPrefix("api");
-  app.useGlobalFilters(new HttpExceptionFilter());
+    app.enableCors({
+      origin: [
+        "https://ridehailing.com",
+        "https://www.ridehailing.com",
+        "http://localhost:3000",
+      ],
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+      allowedHeaders: [
+        "Content-Type",
+        "Authorization",
+        "X-Requested-With",
+        "Accept",
+        "Origin",
+      ],
+      credentials: true,
+    });
 
-  app.use(
-    helmet({
-      contentSecurityPolicy: false,
-      crossOriginEmbedderPolicy: false,
-    }),
-  );
-  app.use(compression());
+    app.setGlobalPrefix("api");
+    app.useGlobalFilters(new HttpExceptionFilter());
 
-  app.useStaticAssets(join(__dirname, "..", "files"), {
-    prefix: "/files/",
-  });
+    app.use(
+      helmet({
+        contentSecurityPolicy: false,
+        crossOriginEmbedderPolicy: false,
+      }),
+    );
 
-  await app.listen(PORT);
+    app.use(compression());
+
+    app.useStaticAssets(join(__dirname, "..", "files"), {
+      prefix: "/files/",
+    });
+
+    await app.init();
+
+    cachedServer = serverlessExpress({ app: server });
+  }
+
+  return cachedServer;
 }
-bootstrap();
+
+// ✅ THIS is what Vercel needs
+export const handler = async (req, res) => {
+  const server = await bootstrap();
+  return server(req, res);
+};
