@@ -1,4 +1,4 @@
-import * as moment from "moment-timezone";
+import moment from "moment-timezone";
 
 export const currentLocalTime = (timezone, format) => {
     return moment.tz(moment.now(), timezone).format(format);
