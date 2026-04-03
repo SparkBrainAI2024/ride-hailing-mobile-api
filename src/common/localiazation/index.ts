@@ -2,13 +2,22 @@ import { language } from "src/schema/user/user-enum";
 import { en_messages } from "./en";
 import { np_messages } from "./np";
 
-export const Message = (lang, key) => {
+const ReturnMessage = (lang, key) => {
   const keys = key.split(".");
   if (lang === language.EN) {
     return filterMessage(keys, en_messages, key);
   }
   if (lang === language.NP) {
     return filterMessage(keys, np_messages, key);
+  }
+};
+
+export const Message = (lang, key) => {
+  if (Array.isArray(key)) {
+    let messageField = key.map((k) => k.errors[0])[0];
+    return ReturnMessage(lang, messageField);
+  } else {
+    return ReturnMessage(lang, key);
   }
 };
 

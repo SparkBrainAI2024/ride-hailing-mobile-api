@@ -18,6 +18,21 @@ export class CoreUserDetails {
 
   @Field()
   language: string;
+
+  @Field({ nullable: true })
+  phone?: string;
+}
+
+@ObjectType()
+export class SignUpResponse {
+  @Field()
+  message: string;
+
+  @Field()
+  success: boolean;
+
+  @Field({ nullable: true })
+  userToken?: string;
 }
 
 @ObjectType()

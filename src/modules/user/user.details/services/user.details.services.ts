@@ -8,7 +8,7 @@ import { UserRepository } from "src/repositories/user/user.repository";
 export class UserDetailsService {
   constructor(
     private readonly userDetailsRepository: UserDetailsRepository,
-    private readonly userRepository: UserRepository
+    private readonly userRepository: UserRepository,
   ) {}
 
   // ✅ Update user details (based on logged-in user)
@@ -20,13 +20,13 @@ export class UserDetailsService {
 
       return await this.userDetailsRepository.updateOne(
         { userId },
-        { ...input }
+        { ...input },
       );
     } catch (e) {
       ErrorException(
         e,
         "COMMON.INTERNAL_SERVER_ERROR",
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -43,7 +43,7 @@ export class UserDetailsService {
       ErrorException(
         e,
         "COMMON.INTERNAL_SERVER_ERROR",
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

@@ -7,7 +7,6 @@ import { HttpExceptionFilter } from "./common/exceptions/error.exception";
 import { join } from "path";
 import * as compression from "compression";
 import helmet from "helmet";
-import { GraphQLError } from "graphql";
 
 async function bootstrap() {
   const appOptions = { cors: true };
@@ -39,6 +38,21 @@ async function bootstrap() {
     helmet({
       contentSecurityPolicy: false,
       crossOriginEmbedderPolicy: false,
+    }),
+  );
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      exceptionFactory: (errors) => {
+        return new BadRequestException(
+          errors.map((err) => ({
+            field: err.property,
+            errors: Object.values(err.constraints || {}),
+          })),
+        );
+      },
     }),
   );
   app.use(compression());

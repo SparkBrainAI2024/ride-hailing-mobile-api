@@ -8,9 +8,10 @@ import {
   MaxLength,
   MinLength,
   IsIn,
+  IsEnum,
 } from "class-validator";
-import { passwordRegex } from "src/config/variable";
-import { roles } from "src/schema/user/user-enum";
+import { passwordRegex, phoneRegex } from "src/config/variable";
+import { GenderEnum, roles } from "src/schema/user/user-enum";
 
 @InputType()
 export class DeviceInput {
@@ -28,11 +29,10 @@ export class DeviceInput {
 }
 
 @InputType()
-export class SignUpInput {
+export class SetPasswordInput {
   @Field()
-  @IsEmail({}, { message: "USER.INVALID_EMAIL" })
-  @IsNotEmpty({ message: "USER.INVALID_EMAIL" })
-  email: string;
+  @IsNotEmpty()
+  userToken: string;
 
   @Field()
   @IsNotEmpty({ message: "USER.REQUIRED_PASSWORD" })
@@ -42,16 +42,36 @@ export class SignUpInput {
   password: string;
 
   @Field()
-  @IsNotEmpty()
-  @MinLength(3)
-  @MaxLength(10)
-  firstName: string;
+  @IsNotEmpty({ message: "USER.REQUIRED_PASSWORD" })
+  @MinLength(8, { message: "USER.MIN_PASSWORD" })
+  @MaxLength(20, { message: "USER.MAX_PASSWORD" })
+  @Matches(passwordRegex, { message: "USER.INVALID_PASSWORD_INPUT" })
+  confirmPassword: string;
+}
+
+@InputType()
+export class SignUpInput {
+  @Field()
+  @IsEmail({}, { message: "USER.INVALID_EMAIL" })
+  @IsNotEmpty({ message: "USER.INVALID_EMAIL" })
+  email: string;
 
   @Field()
   @IsNotEmpty()
-  @MinLength(3)
-  @MaxLength(10)
-  lastName: string;
+  @MinLength(3, { message: "USER.MIN_FULL_NAME" })
+  @MaxLength(30, { message: "USER.MAX_FULL_NAME" })
+  fullName: string;
+
+  @Field()
+  @IsNotEmpty({ message: "USER.INVALID_PHONE" })
+  @Matches(phoneRegex, {
+    message: "USER.INVALID_PHONE",
+  })
+  phone: string;
+
+  @Field(() => GenderEnum)
+  @IsEnum(GenderEnum, { message: "USER.INVALID_GENDER" })
+  gender: GenderEnum;
 }
 
 @InputType()

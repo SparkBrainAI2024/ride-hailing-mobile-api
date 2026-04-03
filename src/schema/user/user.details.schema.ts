@@ -2,7 +2,7 @@ import { Field, ID, ObjectType } from "@nestjs/graphql";
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Types } from "mongoose";
 import { GeoLocation } from "../common/geo.location";
-import { gender } from "./user-enum";
+import { GenderEnum } from "./user-enum";
 
 export type UserDetailsDocument = UserDetails &
   Document & { createdAt: Date; updatedAt: Date };
@@ -19,11 +19,7 @@ export class UserDetails {
 
   @Field()
   @Prop({ required: true })
-  firstName: string;
-
-  @Field()
-  @Prop({ required: true })
-  lastName: string;
+  fullName: string;
 
   @Field({ nullable: true })
   @Prop()
@@ -32,10 +28,6 @@ export class UserDetails {
   @Field({ nullable: true })
   @Prop()
   profileImage?: string;
-
-  @Field({ nullable: true })
-  @Prop()
-  phone?: string;
 
   @Field({ nullable: true })
   @Prop({ type: Date, default: null })
@@ -49,8 +41,12 @@ export class UserDetails {
   @Prop({ type: Object, default: {} })
   geoLocation?: GeoLocation;
 
-  @Field(() => gender, { defaultValue: gender.UNPUBLISHED })
-  @Prop({ type: String, enum: gender, default: gender.UNPUBLISHED })
+  @Field(() => GenderEnum, { defaultValue: GenderEnum.UNPUBLISHED })
+  @Prop({
+    type: String,
+    enum: GenderEnum,
+    default: GenderEnum.UNPUBLISHED,
+  })
   gender: string;
 }
 

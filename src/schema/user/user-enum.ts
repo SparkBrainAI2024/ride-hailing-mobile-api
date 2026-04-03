@@ -11,7 +11,7 @@ export enum language {
   NP = "NP",
 }
 
-export enum gender {
+export enum GenderEnum {
   MALE = "MALE",
   FEMALE = "FEMALE",
   OTHERS = "OTHERS",
@@ -32,6 +32,6 @@ export enum deviceType {
 // Registering for GraphQL
 registerEnumType(roles, { name: "Roles" });
 registerEnumType(language, { name: "Language" });
-registerEnumType(gender, { name: "Gender" });
+registerEnumType(GenderEnum, { name: "GenderEnum" });
 registerEnumType(verificationType, { name: "VerificationType" });
 registerEnumType(deviceType, { name: "DeviceType" });

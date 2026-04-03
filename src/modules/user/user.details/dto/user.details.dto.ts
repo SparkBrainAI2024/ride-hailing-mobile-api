@@ -13,23 +13,16 @@ import {
 import { Type, Transform } from "class-transformer";
 import { IsValidDate } from "src/common/decorators/validation/date-of-birth.decorator";
 import { GeoLocationInput } from "src/common/dto/geo.location.dto";
-import { gender } from "src/schema/user/user-enum";
+import { GenderEnum } from "src/schema/user/user-enum";
 
 @InputType()
 export class CreateUserDetailsInput {
   @Field()
-  @IsNotEmpty({ message: "USER.REQUIRED_FIRST_NAME" })
-  @IsString({ message: "USER.REQUIRED_FIRST_NAME" })
-  @MinLength(3, { message: "USER.MIN_FIRST_NAME" })
-  @MaxLength(10, { message: "USER.MAX_FIRST_NAME" })
-  firstName: string;
-
-  @Field()
-  @IsNotEmpty({ message: "USER.REQUIRED_LAST_NAME" })
-  @IsString({ message: "USER.REQUIRED_LAST_NAME" })
-  @MinLength(3, { message: "USER.MIN_LAST_NAME" })
-  @MaxLength(10, { message: "USER.MAX_LAST_NAME" })
-  lastName: string;
+  @IsNotEmpty()
+  @IsString()
+  @MinLength(3, { message: "USER.MIN_FULL_NAME" })
+  @MaxLength(30, { message: "USER.MAX_FULL_NAME" })
+  fullName: string;
 
   @Field({ nullable: true })
   @IsOptional()
@@ -66,6 +59,6 @@ export class CreateUserDetailsInput {
 
   @Field(() => String, { nullable: true })
   @IsOptional()
-  @IsEnum(gender, { message: "USER.INVALID_GENDER" })
-  gender?: gender;
+  @IsEnum(GenderEnum, { message: "USER.INVALID_GENDER" })
+  gender?: GenderEnum;
 }

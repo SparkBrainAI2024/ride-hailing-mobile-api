@@ -5,12 +5,14 @@ import { CurrentLang } from "src/common/decorators/header.decorators";
 import { AuthService } from "../services/auth.services";
 import {
   SignInResponse,
+  SignUpResponse,
   VerifyResetPasswordOtpResponse,
 } from "../entities/auth.entity";
 import {
   RefreshTokenInput,
   ResetPasswordInput,
   SendVerifyEmailOTPInput,
+  SetPasswordInput,
   SignInInput,
   SignUpInput,
   VerifyEmailInput,
@@ -23,9 +25,17 @@ import { BasicResponse } from "src/common/entity/common.entity";
 export class AuthResolver {
   constructor(private readonly authService: AuthService) {}
 
-  @Mutation(() => BasicResponse)
+  @Mutation(() => SignUpResponse)
   signUp(@Args("input") input: SignUpInput, @CurrentLang() lang: string) {
     return this.authService.signup(input, lang);
+  }
+
+  @Mutation(() => BasicResponse)
+  setPassword(
+    @Args("input") input: SetPasswordInput,
+    @CurrentLang() lang: string,
+  ) {
+    return this.authService.setPassword(input, lang);
   }
 
   @Mutation(() => BasicResponse)
