@@ -7,9 +7,9 @@
     "license": "UNLICENSED",
     "scripts": {
         "prebuild": "rimraf dist",
-        "build": "nest build",
+        "build": "tsc && tsc-alias",
+        "start": "node dist/main.js",
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-        "start": "nest start",
         "start:dev": "nest start --watch",
         "start:debug": "nest start --debug --watch",
         "start:prod": "node dist/main",
@@ -88,6 +88,7 @@
         "ts-jest": "29.4.5",
         "ts-loader": "^9.5.4",
         "ts-node": "^10.9.2",
+        "tsc-alias": "^1.8.16",
         "tsconfig-paths": "4.2.0",
         "typescript": "^5.9.3"
     },
