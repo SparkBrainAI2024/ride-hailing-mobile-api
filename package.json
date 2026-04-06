@@ -9,7 +9,7 @@
         "prebuild": "rimraf dist",
         "build": "tsc && tsc-alias",
         "start": "node dist/main.js",
-        "vercel-build": "npm run build"
+        "vercel-build": "npm run build",
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
         "start:dev": "nest start --watch",
         "start:debug": "nest start --debug --watch",
