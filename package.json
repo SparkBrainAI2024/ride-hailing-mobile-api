@@ -7,7 +7,7 @@
     "license": "UNLICENSED",
     "scripts": {
         "prebuild": "rimraf dist",
-        "build": "tsc && tsc-alias",
+        "build": "nest build",
         "start": "node dist/main.js",
         "vercel-build": "npm run build",
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
