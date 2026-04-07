@@ -5,7 +5,7 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { BadRequestException, ValidationPipe } from "@nestjs/common";
 import { HttpExceptionFilter } from "./common/exceptions/error.exception";
 import { join } from "path";
-import compression from "compression";
+import * as compression from "compression";
 import helmet from "helmet";
 
 async function bootstrap() {
