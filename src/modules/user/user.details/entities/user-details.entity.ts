@@ -1,4 +1,5 @@
 import { Field, ObjectType } from "@nestjs/graphql";
+import { GenderEnum } from "src/schema/user/user-enum";
 
 @ObjectType()
 export class UserDetailsResponse {
@@ -9,10 +10,10 @@ export class UserDetailsResponse {
   userId?: string;
 
   @Field({ nullable: true })
-  firstName?: string;
+  fullName?: string;
 
-  @Field({ nullable: true })
-  lastName?: string;
+  @Field(() => GenderEnum)
+  gender?: GenderEnum;
 
   @Field({ nullable: true })
   address?: string;
@@ -21,16 +22,10 @@ export class UserDetailsResponse {
   profileImage?: string;
 
   @Field({ nullable: true })
-  phone?: string;
-
-  @Field({ nullable: true })
   dateOfBirth?: string;
 
   @Field({ nullable: true })
   bio?: string;
-
-  @Field({ nullable: true })
-  gender?: string;
 
   @Field({ nullable: true })
   createdAt?: string;

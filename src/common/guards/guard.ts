@@ -14,8 +14,22 @@ import { verifyToken } from "../utils/jwt";
 import { language } from "src/schema/user/user-enum";
 import { GqlExecutionContext } from "@nestjs/graphql";
 
-export const X_Auth_Header = "x-auth-token";
+export const AUTHORIZATION_HEADER = "authorization";
 export const LANG_HEADER = "lang";
+
+function extractBearerToken(request: any): string | null {
+  const authorization = request?.headers?.[AUTHORIZATION_HEADER];
+
+  if (
+    authorization &&
+    typeof authorization === "string" &&
+    authorization.startsWith("Bearer ")
+  ) {
+    return authorization.substring(7).trim();
+  }
+
+  return null;
+}
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -28,7 +42,7 @@ export class AuthGuard implements CanActivate {
     const ctx = GqlExecutionContext.create(context);
     const request = ctx.getContext().req;
 
-    let token = request.headers[X_Auth_Header];
+    const token = extractBearerToken(request);
     if (request && request.headers && request.headers[LANG_HEADER]) {
       request.lang =
         request.headers[LANG_HEADER] === language.NP
@@ -72,7 +86,10 @@ export class AuthGuard implements CanActivate {
           HttpStatus.UNAUTHORIZED,
         );
       }
+      console.log("haveUser", haveUser);
       request.user = haveUser;
+      console.log("haveUser", request.user);
+      console.log("haveUser.language", haveUser.language);
       request.lang = haveUser.language;
       return true;
     } else {
@@ -93,7 +110,7 @@ export class LangGuard implements CanActivate {
     const request = ctx.getContext().req;
 
     let defaultLanguage = language.NP;
-    let token = request.headers[X_Auth_Header];
+    const token = extractBearerToken(request);
 
     if (request && request.headers && request.headers[LANG_HEADER]) {
       request.lang =

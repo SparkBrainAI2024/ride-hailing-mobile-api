@@ -5,11 +5,6 @@ import { HttpExceptionFilter } from "./common/exceptions/error.exception";
 import { join } from "path";
 import * as compression from "compression";
 import helmet from "helmet";
-import serverlessExpress from "@vendia/serverless-express";
-import express from "express";
-
-const server = express();
-let cachedServer;
 
 async function bootstrap() {
   if (!cachedServer) {
@@ -30,14 +25,28 @@ async function bootstrap() {
     app.setGlobalPrefix("api");
     app.useGlobalFilters(new HttpExceptionFilter());
 
-    app.use(
-      helmet({
-        contentSecurityPolicy: false,
-        crossOriginEmbedderPolicy: false,
-      }),
-    );
+  app.use(
+    helmet({
+      contentSecurityPolicy: false,
+      crossOriginEmbedderPolicy: false,
+    }),
+  );
 
-    app.use(compression());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      exceptionFactory: (errors) => {
+        return new BadRequestException(
+          errors.map((err) => ({
+            field: err.property,
+            errors: Object.values(err.constraints || {}),
+          })),
+        );
+      },
+    }),
+  );
+  app.use(compression());
 
     app.useStaticAssets(join(__dirname, "..", "files"), {
       prefix: "/files/",

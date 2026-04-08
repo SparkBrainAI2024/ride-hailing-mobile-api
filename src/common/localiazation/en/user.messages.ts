@@ -7,6 +7,8 @@ export const USER = {
   MAX_PASSWORD: "Password most not exceed 20 characters.",
   INVALID_PASSWORD_INPUT:
     "Password must contain one uppercase letter and a minimum of eight characters.",
+  PASSWORD_CONFIRM_PASSWORD_NOT_MATCH:
+    "Password and confirm password do not match.",
   INVALID_PASSWORD: "Invalid password.",
   INCORRECT_PASSWORD: "Incorrect password.",
   SUSPENDED: "User suspended.",
@@ -23,6 +25,9 @@ export const USER = {
   REQUIRED_FIRST_NAME: "Please provide your first name.",
   MIN_FIRST_NAME: "Your first name must be at least 3 characters long.",
   MAX_FIRST_NAME: "Your first name cannot exceed 10 characters in length.",
+  MAX_FULL_NAME: "Your full name cannot exceed 30 characters in length.",
+  MIN_FULL_NAME: "Your full name must be at least 3 characters long.",
+  PASSWORD_SET_SUCCESS: "Password set successfully.",
   REQUIRED_LAST_NAME: "Please provide your last name.",
   MIN_LAST_NAME: "Your last name must be at least 3 characters long.",
   MAX_LAST_NAME: "Your last name cannot exceed 10 characters in length.",

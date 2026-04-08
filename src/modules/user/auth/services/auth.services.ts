@@ -23,6 +23,7 @@ import { UserDocument } from "src/schema/user/user.schema";
 import {
   ResetPasswordInput,
   SendVerifyEmailOTPInput,
+  SetPasswordInput,
   SignInInput,
   SignUpInput,
   VerifyEmailInput,
@@ -45,20 +46,31 @@ export class AuthService {
 
   async signup(createUserInput: SignUpInput, lang: string) {
     try {
-      const { email, password, firstName, lastName } = createUserInput;
+      const { email, fullName, gender, phone } = createUserInput;
       const userExistWithThisEmail =
         await this.userRepository.findByEmail(email);
-      if (userExistWithThisEmail?.verified) {
+      if (userExistWithThisEmail?.password) {
         ErrorException(null, "USER.USED_EMAIL", HttpStatus.BAD_REQUEST);
       }
       const verificationCode = GenerateRandomDigit(userOtpSalt);
-      if (userExistWithThisEmail && !userExistWithThisEmail.verified) {
+      const userTokenData = {
+        email: email,
+        type: tokenTypes.accessToken,
+      };
+      const userToken = await generateToken(userTokenData, JWT_SECRET_KEY, {
+        expiresIn: ACCESS_TOKEN_LIFE,
+      });
+      if (userExistWithThisEmail) {
         await this.mailService.sendUserConfirmation(email, verificationCode);
         await this.userVerificationRepository.sendEmailVerificationOtp(
           userExistWithThisEmail._id,
           verificationCode,
         );
-        return { message: Message(lang, "USER.USER_CREATED"), success: true };
+        return {
+          message: Message(lang, "USER.USER_CREATED"),
+          success: true,
+          userToken,
+        };
       }
       const sendMail = await this.mailService.sendUserConfirmation(
         email,
@@ -67,18 +79,22 @@ export class AuthService {
       if (sendMail) {
         const user: UserDocument = await this.userRepository.create({
           email,
-          password,
+          phone,
         });
         await this.userDetailsRepository.create({
           userId: user._id,
-          firstName,
-          lastName,
+          gender,
+          fullName,
         });
         await this.userVerificationRepository.sendEmailVerificationOtp(
           user._id,
           verificationCode,
         );
-        return { message: Message(lang, "USER.USER_CREATED"), success: true };
+        return {
+          message: Message(lang, "USER.USER_CREATED"),
+          success: true,
+          userToken,
+        };
       } else {
         ErrorException(
           null,
@@ -86,6 +102,46 @@ export class AuthService {
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
+    } catch (e) {
+      ErrorException(
+        e,
+        "COMMON.INTERNAL_SERVER_ERROR",
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async setPassword(setPasswordInput: SetPasswordInput, lang: string) {
+    try {
+      const { password, confirmPassword, userToken } = setPasswordInput;
+      if (password !== confirmPassword) {
+        ErrorException(
+          null,
+          "USER.PASSWORD_CONFIRM_PASSWORD_NOT_MATCH",
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      const verifiedToken = await verifyToken(userToken, JWT_SECRET_KEY);
+      if (!verifiedToken) {
+        ErrorException(null, "COMMON.INVALID_TOKEN", HttpStatus.BAD_REQUEST);
+      }
+      if (verifiedToken.type !== tokenTypes.accessToken) {
+        ErrorException(null, "COMMON.INVALID_TOKEN", HttpStatus.BAD_REQUEST);
+      }
+      const user: UserDocument = await this.userRepository.findOne({
+        email: verifiedToken.email,
+      });
+      if (!user) {
+        ErrorException(null, "USER.NOT_FOUND", HttpStatus.UNAUTHORIZED);
+      }
+      await this.userRepository.updateOne(
+        { _id: user._id },
+        { password: await hashPassword(password, passwordSalt) },
+      );
+      return {
+        message: Message(lang, "USER.PASSWORD_SET_SUCCESS"),
+        success: true,
+      };
     } catch (e) {
       ErrorException(
         e,
@@ -158,17 +214,16 @@ export class AuthService {
         user: {
           _id: user._id,
           email: user.email,
+          phone: user.phone,
           verified: user.verified,
           language: user.language,
           suspended: user.suspended,
           loginAs: user.loginAs,
         },
         userDetails: {
-          firstName: userDetails.firstName,
-          lastName: userDetails.lastName,
+          fullName: userDetails.fullName,
           address: userDetails.address,
           profileImage: userDetails.profileImage,
-          phone: userDetails.phone,
           dateOfBirth: userDetails.dateOfBirth,
           bio: userDetails.bio,
           gender: userDetails.gender,
@@ -367,17 +422,16 @@ export class AuthService {
         user: {
           _id: user._id,
           email: user.email,
+          phone: user.phone,
           verified: user.verified,
           language: user.language,
           suspended: user.suspended,
           loginAs: user.loginAs,
         },
         userDetails: {
-          firstName: userDetails.firstName,
-          lastName: userDetails.lastName,
+          fullName: userDetails.fullName,
           address: userDetails.address,
           profileImage: userDetails.profileImage,
-          phone: userDetails.phone,
           dateOfBirth: userDetails.dateOfBirth,
           bio: userDetails.bio,
           gender: userDetails.gender,

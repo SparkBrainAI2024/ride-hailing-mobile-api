@@ -13,11 +13,15 @@ export class User {
   @Field(() => ID)
   _id: Types.ObjectId;
 
-  @Field()
-  @Prop({ required: true, unique: true })
-  email: string;
+  @Field({ nullable: true })
+  @Prop({ unique: true })
+  email?: string;
 
-  @Prop({ required: true })
+  @Field({ nullable: true })
+  @Prop()
+  phone?: string;
+
+  @Prop()
   password: string;
 
   @Field({ defaultValue: false })
@@ -46,14 +50,3 @@ export class User {
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
-
-UserSchema.pre("save", async function (next) {
-  try {
-    if (this.isModified("password")) {
-      this.password = await hashPassword(this.password, passwordSalt);
-    }
-    return next();
-  } catch (err) {
-    return next(err);
-  }
-});
