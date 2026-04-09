@@ -5,8 +5,7 @@
       "src": "api/index.ts",
       "use": "@vercel/node",
       "config": {
-        "includeFiles": ["src/**"],
-        "nodeOptions": "--require tsconfig-paths/register"
+        "includeFiles": ["src/**", "tsconfig.json"]
       }
     }
   ],
