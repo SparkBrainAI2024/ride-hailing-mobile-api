@@ -1,25 +1,25 @@
 import { HttpStatus } from "@nestjs/common";
 import { Injectable } from "@nestjs/common/decorators";
 import { ErrorException } from "../../common/exceptions/error.exception";
-import { comparePassword, hashPassword } from "src/common/utils/bcrypt";
-import { UTCTime } from "src/common/utils/datetime";
+import { comparePassword, hashPassword } from "../../../../common/utils/bcrypt";
+import { UTCTime } from "../../../../common/utils/datetime";
 import {
   generateMongoDbId,
   GenerateRandomDigit,
-} from "src/common/utils/id.generator";
-import { generateToken, verifyToken } from "src/common/utils/jwt";
+} from "../../../../common/utils/id.generator";
+import { generateToken, verifyToken } from "../../../../common/utils/jwt";
 import {
   ACCESS_TOKEN_LIFE,
   JWT_SECRET_KEY,
   REFRESH_TOKEN_LIFE,
   RESET_PASSWORD_TOKEN_LIFE,
-} from "src/config";
-import { passwordSalt, tokenTypes, userOtpSalt } from "src/config/variable";
-import { MailService } from "src/providers/mail/mail.service";
-import { UserRepository } from "src/repositories/user/user.repository";
-import { UserVerificationRepository } from "src/repositories/user/user.verification.repository";
-import { verificationType } from "src/schema/user/user-enum";
-import { UserDocument } from "src/schema/user/user.schema";
+} from "../../../../config";
+import { passwordSalt, tokenTypes, userOtpSalt } from "../../../../config/variable";
+import { MailService } from "../../../../providers/mail/mail.service";
+import { UserRepository } from "../../../../repositories/user/user.repository";
+import { UserVerificationRepository } from "../../../../repositories/user/user.verification.repository";
+import { verificationType } from "../../../../schema/user/user-enum";
+import { UserDocument } from "../../../../schema/user/user.schema";
 import {
   ResetPasswordInput,
   SendVerifyEmailOTPInput,
@@ -29,10 +29,10 @@ import {
   VerifyEmailInput,
   VerifyResetPasswordOTPInput,
 } from "../dto/auth.dto";
-import { Message } from "src/common/localiazation";
-import { DeviceRepository } from "src/repositories/user/device.repository";
-import { UserDetailsRepository } from "src/repositories/user/user.details.repository";
-import { UserDetailsDocument } from "src/schema/user/user.details.schema";
+import { Message } from "../../../../common/localiazation";
+import { DeviceRepository } from "../../../../repositories/user/device.repository";
+import { UserDetailsRepository } from "../../../../repositories/user/user.details.repository";
+import { UserDetailsDocument } from "../../../../schema/user/user.details.schema";
 
 @Injectable()
 export class AuthService {

@@ -12,7 +12,7 @@ import {
   AWS_S3_UPLOAD_PREFIX,
   AWS_SECRET_KEY,
   S3_BUCKET_NAME,
-} from "src/config";
+} from "../../config";
 
 const UPLOAD_PREFIX = AWS_S3_UPLOAD_PREFIX || "uploads";
 

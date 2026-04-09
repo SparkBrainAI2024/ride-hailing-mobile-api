@@ -1,5 +1,3 @@
-# Save as fix_imports.py and run: python3 fix_imports.py
-cat > fix_imports.py << 'EOF'
 import os
 import re
 
@@ -51,6 +49,3 @@ if remaining:
         print(r)
 else:
     print('All clean! No src/ imports remaining.')
-EOF
-
-python3 fix_imports.py

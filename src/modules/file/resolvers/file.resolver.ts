@@ -1,8 +1,8 @@
 import { Resolver, Mutation, Args } from "@nestjs/graphql";
 import { UseGuards } from "@nestjs/common";
-import { AuthGuard } from "src/common/guards";
-import { CurrentUser } from "src/common/decorators/user.decorator";
-import { UserDocument } from "src/schema/user/user.schema";
+import { AuthGuard } from "../../../common/guards";
+import { CurrentUser } from "../../../common/decorators/user.decorator";
+import { UserDocument } from "../../../schema/user/user.schema";
 import { FileService } from "../services/file.service";
 import { S3UploadUrlEntity, S3UploadUrlInput } from "../dto/file.dto";
 

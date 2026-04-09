@@ -1,7 +1,7 @@
 import { HttpStatus } from "@nestjs/common";
 import { Injectable } from "@nestjs/common/decorators";
 import { ErrorException } from "../../../common/exceptions/error.exception";
-import { S3ServiceProvider } from "src/providers/s3/s3.service";
+import { S3ServiceProvider } from "../../../providers/s3/s3.service";
 import { S3UploadUrlInput } from "../dto/file.dto";
 
 @Injectable()

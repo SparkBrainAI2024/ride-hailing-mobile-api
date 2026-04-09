@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { verificationType } from "./user-enum";
 import mongoose, { Document, Types } from "mongoose";
-import { userOtpExpiredTime } from "src/config/variable";
+import { userOtpExpiredTime } from "../../config/variable";
 import { ApiProperty } from "@nestjs/swagger";
 import { Field, ID, ObjectType } from "@nestjs/graphql";
 

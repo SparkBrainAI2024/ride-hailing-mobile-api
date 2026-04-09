@@ -7,11 +7,11 @@ import {
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { JWT_SECRET_KEY } from "src/config";
-import { tokenTypes } from "src/config/variable";
-import { User, UserDocument } from "src/schema/user/user.schema";
+import { JWT_SECRET_KEY } from "../../config";
+import { tokenTypes } from "../../config/variable";
+import { User, UserDocument } from "../../schema/user/user.schema";
 import { verifyToken } from "../utils/jwt";
-import { language } from "src/schema/user/user-enum";
+import { language } from "../../schema/user/user-enum";
 import { GqlExecutionContext } from "@nestjs/graphql";
 
 export const AUTHORIZATION_HEADER = "authorization";

@@ -1,5 +1,5 @@
 import { Field, ObjectType } from "@nestjs/graphql";
-import { GenderEnum } from "src/schema/user/user-enum";
+import { GenderEnum } from "../../../../schema/user/user-enum";
 
 @ObjectType()
 export class UserDetailsResponse {

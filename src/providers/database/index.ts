@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
-import { DB_CONNECTION_URL } from "src/config";
+import { DB_CONNECTION_URL } from "../../config";
 
 @Module({
     imports: [

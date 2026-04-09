@@ -5,7 +5,7 @@ import {
   NestInterceptor,
 } from "@nestjs/common";
 import { map } from "rxjs";
-import { S3_BUCKET_NAME, AWS_REGION } from "src/config";
+import { S3_BUCKET_NAME, AWS_REGION } from "../../config";
 
 const BASE_URL = `https://${S3_BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com`;
 

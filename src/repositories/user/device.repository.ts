@@ -2,8 +2,8 @@ import { HttpStatus, Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
 import { ErrorException } from "../../common/exceptions/error.exception";
-import { BaseRepository } from "src/repositories/abstracts/base-repository";
-import { Device, DeviceDocument } from "src/schema/user/device.schema";
+import { BaseRepository } from "../abstracts/base-repository";
+import { Device, DeviceDocument } from "../../schema/user/device.schema";
 
 @Injectable()
 export class DeviceRepository extends BaseRepository {

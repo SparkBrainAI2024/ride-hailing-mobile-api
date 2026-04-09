@@ -1,7 +1,7 @@
 import { HttpStatus, Injectable } from "@nestjs/common";
 import axios from "axios";
 import { ErrorException } from "../../common/exceptions/error.exception";
-import { GOOGLE_MAP_API_KEY } from "src/config";
+import { GOOGLE_MAP_API_KEY } from "../../config";
 
 export interface NepalAddressResponse {
   province: string | null;

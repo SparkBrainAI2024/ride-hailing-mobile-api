@@ -1,6 +1,6 @@
 import { Field, ObjectType, InputType } from "@nestjs/graphql";
 import { IsIn, IsNotEmpty, IsString } from "class-validator";
-import { allowedFileExtensions } from "src/config/variable";
+import { allowedFileExtensions } from "../../../config/variable";
 
 @ObjectType()
 export class S3UploadUrlEntity {

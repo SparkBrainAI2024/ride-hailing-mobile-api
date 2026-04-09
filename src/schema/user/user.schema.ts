@@ -2,8 +2,8 @@ import { ObjectType, Field, ID } from "@nestjs/graphql";
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document, Types } from "mongoose";
 import { language, roles } from "./user-enum";
-import { hashPassword } from "src/common/utils/bcrypt";
-import { passwordSalt } from "src/config/variable";
+import { hashPassword } from "../../common/utils/bcrypt";
+import { passwordSalt } from "../../config/variable";
 
 export type UserDocument = User & Document;
 

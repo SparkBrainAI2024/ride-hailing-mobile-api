@@ -11,9 +11,9 @@ import {
   IsDate,
 } from "class-validator";
 import { Type, Transform } from "class-transformer";
-import { IsValidDate } from "src/common/decorators/validation/date-of-birth.decorator";
-import { GeoLocationInput } from "src/common/dto/geo.location.dto";
-import { GenderEnum } from "src/schema/user/user-enum";
+import { IsValidDate } from "../../../../common/decorators/validation/date-of-birth.decorator";
+import { GeoLocationInput } from "../../../../common/dto/geo.location.dto";
+import { GenderEnum } from "../../../../schema/user/user-enum";
 
 @InputType()
 export class CreateUserDetailsInput {

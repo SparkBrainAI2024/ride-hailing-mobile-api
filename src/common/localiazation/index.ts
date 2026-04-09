@@ -1,4 +1,4 @@
-import { language } from "src/schema/user/user-enum";
+import { language } from "../../schema/user/user-enum";
 import { en_messages } from "./en";
 import { np_messages } from "./np";
 

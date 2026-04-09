@@ -1,9 +1,9 @@
 import { Module } from "@nestjs/common";
-import { S3ServiceProvider } from "src/providers/s3/s3.service";
+import { S3ServiceProvider } from "../../providers/s3/s3.service";
 import { FileResolver } from "./resolvers/file.resolver";
 import { FileService } from "./services/file.service";
 import { MongooseModule } from "@nestjs/mongoose";
-import { User, UserSchema } from "src/schema/user/user.schema";
+import { User, UserSchema } from "../../schema/user/user.schema";
 
 @Module({
   imports: [

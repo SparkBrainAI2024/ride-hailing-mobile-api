@@ -1,6 +1,6 @@
 import { Field, ObjectType } from "@nestjs/graphql";
 import { UserDetailsResponse } from "../../user.details/entities/user-details.entity";
-import { BasicResponse } from "src/common/entity/common.entity";
+import { BasicResponse } from "../../../../common/entity/common.entity";
 
 @ObjectType()
 export class CoreUserDetails {

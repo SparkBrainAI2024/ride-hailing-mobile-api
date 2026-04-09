@@ -1,22 +1,22 @@
 import { Module } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
-import { MailModule } from "src/providers/mail/mail.module";
-import { UserDetailsRepository } from "src/repositories/user/user.details.repository";
-import { UserRepository } from "src/repositories/user/user.repository";
-import { UserVerificationRepository } from "src/repositories/user/user.verification.repository";
+import { MailModule } from "../../../providers/mail/mail.module";
+import { UserDetailsRepository } from "../../../repositories/user/user.details.repository";
+import { UserRepository } from "../../../repositories/user/user.repository";
+import { UserVerificationRepository } from "../../../repositories/user/user.verification.repository";
 import {
   UserDetails,
   UserDetailsSchema,
-} from "src/schema/user/user.details.schema";
-import { User, UserSchema } from "src/schema/user/user.schema";
+} from "../../../schema/user/user.details.schema";
+import { User, UserSchema } from "../../../schema/user/user.schema";
 import {
   UserVerification,
   UserVerificationSchema,
-} from "src/schema/user/user.verification";
+} from "../../../schema/user/user.verification";
 import { AuthResolver } from "./resolvers/auth.resolver";
 import { AuthService } from "./services/auth.services";
-import { Device, DeviceSchema } from "src/schema/user/device.schema";
-import { DeviceRepository } from "src/repositories/user/device.repository";
+import { Device, DeviceSchema } from "../../../schema/user/device.schema";
+import { DeviceRepository } from "../../../repositories/user/device.repository";
 
 @Module({
   imports: [

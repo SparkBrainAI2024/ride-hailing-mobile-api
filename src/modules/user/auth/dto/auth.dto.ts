@@ -10,8 +10,8 @@ import {
   IsIn,
   IsEnum,
 } from "class-validator";
-import { passwordRegex, phoneRegex } from "src/config/variable";
-import { GenderEnum, roles } from "src/schema/user/user-enum";
+import { passwordRegex, phoneRegex } from "../../../../config/variable";
+import { GenderEnum, roles } from "../../../../schema/user/user-enum";
 
 @InputType()
 export class DeviceInput {

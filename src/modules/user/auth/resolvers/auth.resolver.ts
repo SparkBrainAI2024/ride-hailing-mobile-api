@@ -1,7 +1,7 @@
 import { Resolver, Mutation, Args } from "@nestjs/graphql";
 import { UseGuards } from "@nestjs/common";
-import { LangGuard } from "src/common/guards";
-import { CurrentLang } from "src/common/decorators/header.decorators";
+import { LangGuard } from "../../../../common/guards";
+import { CurrentLang } from "../../../../common/decorators/header.decorators";
 import { AuthService } from "../services/auth.services";
 import {
   SignInResponse,
@@ -18,7 +18,7 @@ import {
   VerifyEmailInput,
   VerifyResetPasswordOTPInput,
 } from "../dto/auth.dto";
-import { BasicResponse } from "src/common/entity/common.entity";
+import { BasicResponse } from "../../../../common/entity/common.entity";
 
 @Resolver()
 @UseGuards(LangGuard)

@@ -1,8 +1,8 @@
 import { Resolver, Query, Mutation, Args } from "@nestjs/graphql";
 import { UseGuards } from "@nestjs/common";
-import { AuthGuard, LangGuard } from "src/common/guards";
-import { CurrentUser } from "src/common/decorators/user.decorator";
-import { CurrentLang } from "src/common/decorators/header.decorators";
+import { AuthGuard, LangGuard } from "../../../../common/guards";
+import { CurrentUser } from "../../../../common/decorators/user.decorator";
+import { CurrentLang } from "../../../../common/decorators/header.decorators";
 
 import { UserDetailsService } from "../services/user.details.services";
 import { CreateUserDetailsInput } from "../dto/user.details.dto";

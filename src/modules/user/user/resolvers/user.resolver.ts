@@ -1,8 +1,8 @@
 import { Resolver, Mutation, Query, Args } from "@nestjs/graphql";
 import { UseGuards } from "@nestjs/common";
-import { AuthGuard } from "src/common/guards";
-import { CurrentUser } from "src/common/decorators/user.decorator";
-import { CurrentLang } from "src/common/decorators/header.decorators";
+import { AuthGuard } from "../../../../common/guards";
+import { CurrentUser } from "../../../../common/decorators/user.decorator";
+import { CurrentLang } from "../../../../common/decorators/header.decorators";
 import { UserService } from "../services/user.services";
 import {
   ChangeLanguageInput,
@@ -12,7 +12,7 @@ import {
 } from "../dto/create.user.dto";
 
 import { UserDetailEntity } from "../entities/user.entity";
-import { BasicResponse } from "src/common/entity/common.entity";
+import { BasicResponse } from "../../../../common/entity/common.entity";
 
 @Resolver()
 @UseGuards(AuthGuard)

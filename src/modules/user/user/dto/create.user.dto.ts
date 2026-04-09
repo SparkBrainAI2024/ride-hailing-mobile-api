@@ -8,8 +8,8 @@ import {
   MaxLength,
   MinLength,
 } from "class-validator";
-import { passwordRegex } from "src/config/variable";
-import { language } from "src/schema/user/user-enum";
+import { passwordRegex } from "../../../../config/variable";
+import { language } from "../../../../schema/user/user-enum";
 
 @InputType()
 export class ChangeEmailInput {

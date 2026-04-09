@@ -1,20 +1,20 @@
 import { HttpStatus } from "@nestjs/common";
 import { Injectable } from "@nestjs/common/decorators";
 import { ErrorException } from "../../common/exceptions/error.exception";
-import { comparePassword, hashPassword } from "src/common/utils/bcrypt";
-import { passwordSalt } from "src/config/variable";
-import { UserRepository } from "src/repositories/user/user.repository";
-import { UserDocument } from "src/schema/user/user.schema";
+import { comparePassword, hashPassword } from "../../../../common/utils/bcrypt";
+import { passwordSalt } from "../../../../config/variable";
+import { UserRepository } from "../../../../repositories/user/user.repository";
+import { UserDocument } from "../../../../schema/user/user.schema";
 import {
   ChangePasswordInput,
   VerifyChangeEmailOTPInput,
 } from "../dto/create.user.dto";
-import { Message } from "src/common/localiazation";
-import { DeviceRepository } from "src/repositories/user/device.repository";
-import { language, verificationType } from "src/schema/user/user-enum";
-import { UserVerificationRepository } from "src/repositories/user/user.verification.repository";
-import { UserDetailsDocument } from "src/schema/user/user.details.schema";
-import { UserDetailsRepository } from "src/repositories/user/user.details.repository";
+import { Message } from "../../../../common/localiazation";
+import { DeviceRepository } from "../../../../repositories/user/device.repository";
+import { language, verificationType } from "../../../../schema/user/user-enum";
+import { UserVerificationRepository } from "../../../../repositories/user/user.verification.repository";
+import { UserDetailsDocument } from "../../../../schema/user/user.details.schema";
+import { UserDetailsRepository } from "../../../../repositories/user/user.details.repository";
 
 @Injectable()
 export class UserService {
