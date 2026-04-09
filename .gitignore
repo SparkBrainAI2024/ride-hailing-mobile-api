@@ -4,3 +4,6 @@ dist
 files
 src/schema.gql
 .historysrc/schema.gql
+fix_imports.py
+fix-all-imports.sh 
+fix-import.js
