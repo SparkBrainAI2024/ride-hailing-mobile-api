@@ -5,7 +5,7 @@ import {
   GetObjectCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { ErrorException } from "src/common/exceptions/error.exception";
+import { ErrorException } from "../../common/exceptions/error.exception";
 import {
   AWS_ACCESS_KEY_ID,
   AWS_REGION,

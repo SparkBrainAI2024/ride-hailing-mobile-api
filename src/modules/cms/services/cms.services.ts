@@ -1,6 +1,6 @@
 import { HttpStatus } from "@nestjs/common";
 import { Injectable } from "@nestjs/common/decorators";
-import { ErrorException } from "src/common/exceptions/error.exception";
+import { ErrorException } from "../../common/exceptions/error.exception";
 import * as countries from "countries-list";
 import { CountryListType } from "../entities/cms.entity";
 

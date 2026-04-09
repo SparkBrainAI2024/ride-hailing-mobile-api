@@ -1,6 +1,6 @@
 import { HttpStatus } from "@nestjs/common";
 import { Injectable } from "@nestjs/common/decorators";
-import { ErrorException } from "src/common/exceptions/error.exception";
+import { ErrorException } from "../../common/exceptions/error.exception";
 import { comparePassword, hashPassword } from "src/common/utils/bcrypt";
 import { passwordSalt } from "src/config/variable";
 import { UserRepository } from "src/repositories/user/user.repository";
