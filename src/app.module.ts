@@ -16,17 +16,11 @@ import { join } from "path";
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
-      autoSchemaFile: true,
-      sortSchema: true,
-      context: ({ req }) => ({ req }),
-      formatError: (error) => {
-        return {
-          message: error.message,
-          statusCode: error.extensions?.statusCode || 500,
-          path: error.path,
-          timestamp: error.extensions?.timestamp || new Date().toISOString(),
-        };
-      },
+
+      // Auto-generate schema file
+      autoSchemaFile: join(process.cwd(), "src/schema.gql"),
+
+      // Enable playground (dev only)
       playground: true,
     }),
     DatabaseProvider,
