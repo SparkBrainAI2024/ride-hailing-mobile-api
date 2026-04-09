@@ -1,9 +1,9 @@
-import { HttpException } from "@nestjs/common/exceptions/http.exception";
 import {
   ExceptionFilter,
   Catch,
   ArgumentsHost,
   HttpStatus,
+  HttpException,
 } from "@nestjs/common";
 import { Request, Response } from "express";
 import { GqlExecutionContext } from "@nestjs/graphql";

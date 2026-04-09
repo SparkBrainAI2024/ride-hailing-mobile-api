@@ -1,6 +1,5 @@
 import { HttpStatus } from "@nestjs/common";
 import { Injectable } from "@nestjs/common/decorators";
-import { ErrorException } from "../../common/exceptions/error.exception";
 import { comparePassword, hashPassword } from "../../../../common/utils/bcrypt";
 import { UTCTime } from "../../../../common/utils/datetime";
 import {
@@ -33,6 +32,7 @@ import { Message } from "../../../../common/localiazation";
 import { DeviceRepository } from "../../../../repositories/user/device.repository";
 import { UserDetailsRepository } from "../../../../repositories/user/user.details.repository";
 import { UserDetailsDocument } from "../../../../schema/user/user.details.schema";
+import { ErrorException } from "src/common/exceptions/error.exception";
 
 @Injectable()
 export class AuthService {

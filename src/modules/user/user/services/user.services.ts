@@ -1,6 +1,5 @@
 import { HttpStatus } from "@nestjs/common";
 import { Injectable } from "@nestjs/common/decorators";
-import { ErrorException } from "../../common/exceptions/error.exception";
 import { comparePassword, hashPassword } from "../../../../common/utils/bcrypt";
 import { passwordSalt } from "../../../../config/variable";
 import { UserRepository } from "../../../../repositories/user/user.repository";
@@ -15,6 +14,7 @@ import { language, verificationType } from "../../../../schema/user/user-enum";
 import { UserVerificationRepository } from "../../../../repositories/user/user.verification.repository";
 import { UserDetailsDocument } from "../../../../schema/user/user.details.schema";
 import { UserDetailsRepository } from "../../../../repositories/user/user.details.repository";
+import { ErrorException } from "src/common/exceptions/error.exception";
 
 @Injectable()
 export class UserService {

@@ -1,8 +1,8 @@
 import { HttpStatus, Injectable } from "@nestjs/common";
-import { ErrorException } from "../../common/exceptions/error.exception";
 import { UserDetailsRepository } from "../../../../repositories/user/user.details.repository";
 import { CreateUserDetailsInput } from "../dto/user.details.dto";
 import { UserRepository } from "../../../../repositories/user/user.repository";
+import { ErrorException } from "src/common/exceptions/error.exception";
 
 @Injectable()
 export class UserDetailsService {
