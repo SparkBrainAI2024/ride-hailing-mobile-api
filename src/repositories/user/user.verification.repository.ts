@@ -2,11 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { HttpStatus } from '@nestjs/common/enums';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { ErrorException } from 'src/common/exceptions/error.exception';
-import { UTCTime } from 'src/common/utils/datetime';
-import { BaseRepository } from 'src/repositories/abstracts/base-repository';
-import { verificationType } from 'src/schema/user/user-enum';
-import { UserVerification, UserVerificationDocument } from 'src/schema/user/user.verification';
+import { ErrorException } from '../../common/exceptions/error.exception';
+import { UTCTime } from '../../common/utils/datetime';
+import { BaseRepository } from '../abstracts/base-repository';
+import { verificationType } from '../../schema/user/user-enum';
+import { UserVerification, UserVerificationDocument } from '../../schema/user/user.verification';
 
 @Injectable()
 export class UserVerificationRepository extends BaseRepository {
