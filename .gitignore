@@ -3,4 +3,4 @@ dist
 .env
 files
 src/schema.gql
-.history
+.historysrc/schema.gql
