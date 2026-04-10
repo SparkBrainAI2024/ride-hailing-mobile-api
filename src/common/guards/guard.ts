@@ -86,10 +86,7 @@ export class AuthGuard implements CanActivate {
           HttpStatus.UNAUTHORIZED,
         );
       }
-      console.log("haveUser", haveUser);
       request.user = haveUser;
-      console.log("haveUser", request.user);
-      console.log("haveUser.language", haveUser.language);
       request.lang = haveUser.language;
       return true;
     } else {
