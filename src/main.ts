@@ -15,13 +15,12 @@ const server = express();
 let app: NestExpressApplication;
 
 async function bootstrap() {
-  if (app) return app; // جلوگیری از initialize دوباره
-
+  if (app) return app;
   const appOptions = { cors: true };
 
   app = await NestFactory.create<NestExpressApplication>(
     AppModule,
-    new ExpressAdapter(server), // ✅ FIX (important)
+    new ExpressAdapter(server),
     appOptions,
   );
 
@@ -58,14 +57,11 @@ async function bootstrap() {
     prefix: "/files/",
   });
 
-  await app.init(); // ✅ required for serverless
+  await app.init();
 
   return app;
 }
 
-//
-// ✅ LOCAL DEVELOPMENT (unchanged behavior)
-//
 if (process.env.NODE_ENV !== "production") {
   bootstrap().then(() => {
     app.listen(PORT, () => {
@@ -74,9 +70,6 @@ if (process.env.NODE_ENV !== "production") {
   });
 }
 
-//
-// ✅ VERCEL SERVERLESS HANDLER
-//
 export default async function handler(req, res) {
   await bootstrap();
   return server(req, res);

@@ -8,16 +8,24 @@ import { GraphQLModule } from "@nestjs/graphql";
 import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
 import { join } from "path";
 
+const isProduction = process.env.NODE_ENV === "production";
+
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ".env",
     }),
+
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
-      autoSchemaFile: join(process.cwd(), "src/schema.gql"),
+
+      autoSchemaFile: isProduction
+        ? true
+        : join(process.cwd(), "src/schema.gql"),
+
       context: ({ req }) => ({ req }),
+
       formatError: (error) => {
         return {
           message: error.message,
@@ -26,8 +34,10 @@ import { join } from "path";
           timestamp: error.extensions?.timestamp || new Date().toISOString(),
         };
       },
+
       playground: true,
     }),
+
     DatabaseProvider,
     CmsModule,
     FileModule,
