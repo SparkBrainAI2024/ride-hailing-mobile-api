@@ -8,7 +8,8 @@ import { GraphQLModule } from "@nestjs/graphql";
 import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
 import { join } from "path";
 
-const isProduction = process.env.NODE_ENV === "production";
+const isProduction =
+  process.env.NODE_ENV === "production" || process.env.VERCEL === "1";
 
 @Module({
   imports: [
@@ -26,16 +27,16 @@ const isProduction = process.env.NODE_ENV === "production";
 
       context: ({ req }) => ({ req }),
 
-      formatError: (error) => {
-        return {
-          message: error.message,
-          statusCode: error.extensions?.statusCode || 500,
-          path: error.path,
-          timestamp: error.extensions?.timestamp || new Date().toISOString(),
-        };
-      },
+      formatError: (error) => ({
+        message: error.message,
+        statusCode: error.extensions?.statusCode || 500,
+        path: error.path,
+        timestamp: error.extensions?.timestamp || new Date().toISOString(),
+      }),
 
-      playground: true,
+      introspection: true,
+
+      playground: !isProduction,
     }),
 
     DatabaseProvider,
