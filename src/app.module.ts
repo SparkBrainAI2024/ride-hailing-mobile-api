@@ -37,6 +37,14 @@ const isProduction =
       introspection: true,
 
       playground: !isProduction,
+      csrfPrevention: {
+        requestHeaders: [
+          "content-type",
+          "authorization",
+          "apollo-require-preflight",
+          "x-apollo-operation-name",
+        ],
+      },
     }),
 
     DatabaseProvider,
