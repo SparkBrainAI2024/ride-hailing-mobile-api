@@ -1,24 +1,34 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { PORT } from "./config";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { BadRequestException, ValidationPipe } from "@nestjs/common";
+import {
+  NestExpressApplication,
+  ExpressAdapter,
+} from "@nestjs/platform-express";
 import { HttpExceptionFilter } from "./common/exceptions/error.exception";
 import { join } from "path";
 import * as compression from "compression";
 import helmet from "helmet";
+import * as express from "express";
+
+const server = express();
+let app: NestExpressApplication;
 
 async function bootstrap() {
+  if (app) return app;
   const appOptions = { cors: true };
-  const app = await NestFactory.create<NestExpressApplication>(
+
+  app = await NestFactory.create<NestExpressApplication>(
     AppModule,
+    new ExpressAdapter(server),
     appOptions,
   );
+
   app.enableCors({
     origin: [
-      "https://ridehailing.com", // your production domain
-      "https://www.ridehailing.com", // with www if applicable
-      "http://localhost:3000", // for local frontend testing
+      "https://ridehailing.com",
+      "https://www.ridehailing.com",
+      "http://localhost:3000",
     ],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: [
@@ -28,7 +38,7 @@ async function bootstrap() {
       "Accept",
       "Origin",
     ],
-    credentials: true, // if you send cookies or Authorization headers
+    credentials: true,
   });
 
   app.setGlobalPrefix("api");
@@ -41,26 +51,26 @@ async function bootstrap() {
     }),
   );
 
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      transform: true,
-      exceptionFactory: (errors) => {
-        return new BadRequestException(
-          errors.map((err) => ({
-            field: err.property,
-            errors: Object.values(err.constraints || {}),
-          })),
-        );
-      },
-    }),
-  );
   app.use(compression());
 
   app.useStaticAssets(join(__dirname, "..", "files"), {
     prefix: "/files/",
   });
 
-  await app.listen(PORT);
+  await app.init();
+
+  return app;
 }
-bootstrap();
+
+if (process.env.NODE_ENV !== "production") {
+  bootstrap().then(() => {
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on http://localhost:${PORT}`);
+    });
+  });
+}
+
+export default async function handler(req, res) {
+  await bootstrap();
+  return server(req, res);
+}
