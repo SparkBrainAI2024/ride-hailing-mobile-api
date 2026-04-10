@@ -26,8 +26,8 @@ async function bootstrap() {
 
   app.enableCors({
     origin: [
-      "https://ridehailing.com",
-      "https://www.ridehailing.com",
+      "https://ride-hailing-mobile-api-zyyq.vercel.app",
+      "https://www.ride-hailing-mobile-api-zyyq.vercel.app",
       "http://localhost:3000",
     ],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
