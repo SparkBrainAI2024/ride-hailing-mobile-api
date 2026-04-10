@@ -2,7 +2,6 @@ import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { PORT } from "./config";
 import { NestExpressApplication } from "@nestjs/platform-express";
-import { BadRequestException, ValidationPipe } from "@nestjs/common";
 import { HttpExceptionFilter } from "./common/exceptions/error.exception";
 import { join } from "path";
 import * as compression from "compression";
@@ -38,21 +37,6 @@ async function bootstrap() {
     helmet({
       contentSecurityPolicy: false,
       crossOriginEmbedderPolicy: false,
-    }),
-  );
-
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      transform: true,
-      exceptionFactory: (errors) => {
-        return new BadRequestException(
-          errors.map((err) => ({
-            field: err.property,
-            errors: Object.values(err.constraints || {}),
-          })),
-        );
-      },
     }),
   );
   app.use(compression());
