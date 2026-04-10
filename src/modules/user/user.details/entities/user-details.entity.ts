@@ -12,11 +12,17 @@ export class UserDetailsResponse {
   @Field({ nullable: true })
   fullName?: string;
 
-  @Field(() => GenderEnum)
+  @Field(() => GenderEnum, { nullable: true })
   gender?: GenderEnum;
 
   @Field({ nullable: true })
   address?: string;
+
+  @Field({ nullable: true })
+  phone?: string;
+
+  @Field({ nullable: true })
+  email?: string;
 
   @Field({ nullable: true })
   profileImage?: string;
