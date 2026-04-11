@@ -33,6 +33,7 @@ import { Message } from "src/common/localiazation";
 import { DeviceRepository } from "src/repositories/user/device.repository";
 import { UserDetailsRepository } from "src/repositories/user/user.details.repository";
 import { UserDetailsDocument } from "src/schema/user/user.details.schema";
+import { profile } from "console";
 
 @Injectable()
 export class AuthService {
@@ -180,6 +181,7 @@ export class AuthService {
           verified: user.verified,
           language: user.language,
           suspended: user.suspended,
+          profileCompleted: user.profileCompleted,
           loginAs: user.loginAs,
         },
         userDetails: {
