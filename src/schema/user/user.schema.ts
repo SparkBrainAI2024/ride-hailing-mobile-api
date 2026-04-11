@@ -26,6 +26,10 @@ export class User {
 
   @Field({ defaultValue: false })
   @Prop({ default: false })
+  profileCompleted: boolean;
+
+  @Field({ defaultValue: false })
+  @Prop({ default: false })
   suspended: boolean;
 
   @Field({ defaultValue: false })
