@@ -14,6 +14,9 @@ export class CoreUserDetails {
   suspended: boolean;
 
   @Field()
+  profileCompleted: boolean;
+
+  @Field()
   _id: string;
 
   @Field()

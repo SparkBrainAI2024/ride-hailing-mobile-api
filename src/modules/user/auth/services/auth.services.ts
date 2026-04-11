@@ -33,6 +33,7 @@ import { Message } from "src/common/localiazation";
 import { DeviceRepository } from "src/repositories/user/device.repository";
 import { UserDetailsRepository } from "src/repositories/user/user.details.repository";
 import { UserDetailsDocument } from "src/schema/user/user.details.schema";
+import { profile } from "console";
 
 @Injectable()
 export class AuthService {
@@ -113,7 +114,7 @@ export class AuthService {
 
   async setPassword(setPasswordInput: SetPasswordInput, lang: string) {
     try {
-      const { password, confirmPassword, userToken } = setPasswordInput;
+      const { password, confirmPassword, userToken, device } = setPasswordInput;
       if (password !== confirmPassword) {
         ErrorException(
           null,
@@ -138,10 +139,67 @@ export class AuthService {
         { _id: user._id },
         { password: await hashPassword(password, passwordSalt) },
       );
-      return {
-        message: Message(lang, "USER.PASSWORD_SET_SUCCESS"),
-        success: true,
+      if (device) {
+        const { deviceId, firebaseToken, deviceType } = device;
+        await this.deviceRepository.addDevice(
+          user._id,
+          deviceId,
+          firebaseToken,
+          deviceType,
+        );
+      }
+      const accessTokenData = {
+        id: user._id,
+        email: user.email,
+        sessionId: generateMongoDbId(),
+        type: tokenTypes.accessToken,
       };
+      const refreshTokenData = {
+        id: user._id,
+        email: user.email,
+        type: tokenTypes.refreshToken,
+      };
+      const accessToken = await generateToken(accessTokenData, JWT_SECRET_KEY, {
+        expiresIn: ACCESS_TOKEN_LIFE,
+      });
+      const refreshToken = await generateToken(
+        refreshTokenData,
+        JWT_SECRET_KEY,
+        { expiresIn: REFRESH_TOKEN_LIFE },
+      );
+      const userDetails: UserDetailsDocument =
+        await this.userDetailsRepository.findOne({ userId: user._id });
+
+      if (!userDetails) {
+        ErrorException(null, "USER.INVALID_EMAIL", HttpStatus.UNAUTHORIZED);
+      }
+      const result = {
+        user: {
+          _id: user._id,
+          email: user.email,
+          phone: user.phone,
+          verified: user.verified,
+          language: user.language,
+          suspended: user.suspended,
+          profileCompleted: user.profileCompleted,
+          loginAs: user.loginAs,
+        },
+        userDetails: {
+          fullName: userDetails.fullName,
+          address: userDetails.address,
+          profileImage: userDetails.profileImage,
+          dateOfBirth: userDetails.dateOfBirth,
+          bio: userDetails.bio,
+          gender: userDetails.gender,
+          createdAt: userDetails.createdAt,
+          geoLocation: userDetails?.geoLocation?.type
+            ? userDetails.geoLocation
+            : null,
+        },
+        accessToken,
+        refreshToken,
+      };
+      return result;
     } catch (e) {
       ErrorException(
         e,
@@ -218,6 +276,7 @@ export class AuthService {
           verified: user.verified,
           language: user.language,
           suspended: user.suspended,
+          profileCompleted: user.profileCompleted,
           loginAs: user.loginAs,
         },
         userDetails: {

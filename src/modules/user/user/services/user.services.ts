@@ -107,6 +107,7 @@ export class UserService {
         verified: user.verified,
         language: user.language,
         suspended: user.suspended,
+        profileCompleted: user.profileCompleted,
         loginAs: user.loginAs,
         userDetails: userDetails,
       };

@@ -26,6 +26,12 @@ export class UserDetailsService {
         { ...input },
       );
 
+      await this.userRepository.updateOne(
+        { _id: user._id },
+        { profileCompleted: true },
+      );
+
+
       if (input.phone) {
         await this.userRepository.updateById(userId, { phone: input.phone });
       }
