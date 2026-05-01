@@ -30,7 +30,7 @@ export class AuthResolver {
     return this.authService.signup(input, lang);
   }
 
-  @Mutation(() => BasicResponse)
+  @Mutation(() => SignInResponse)
   setPassword(
     @Args("input") input: SetPasswordInput,
     @CurrentLang() lang: string,
