@@ -35,7 +35,22 @@ const isProduction = process.env.NODE_ENV === "production";
         };
       },
 
-      playground: true,
+      introspection: true, // allow schema access in production
+
+      playground: !isProduction, // keep old playground locally only
+
+      plugins: isProduction
+        ? [
+            // modern Apollo landing page (works on serverless)
+            require("@apollo/server/plugin/landingPage/default").ApolloServerPluginLandingPageLocalDefault(
+              {
+                embed: true,
+              },
+            ),
+          ]
+        : [],
+      csrfPrevention: true,
+      cache: "bounded",
     }),
 
     DatabaseProvider,
