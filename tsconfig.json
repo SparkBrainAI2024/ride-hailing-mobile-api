@@ -1,6 +1,8 @@
 {
   "compilerOptions": {
     "module": "commonjs",
+    "ignoreDeprecations": "6.0",
+    "moduleResolution": "node",
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
@@ -10,6 +12,15 @@
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
+    "paths": {
+      "@libs/common": ["libs/common/src"],
+      "@libs/common/*": ["libs/common/src/*"],
+      "@libs/data-access": ["libs/data-access/src"],
+      "@libs/data-access/*": ["libs/data-access/src/*"],
+      "@libs/s3": ["libs/s3/src"],
+      "@libs/s3/*": ["libs/s3/src/*"],
+      "@cms-modules/*": ["apps/cms-api/src/modules/*"]
+    },
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": false,
@@ -17,5 +28,6 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false
-  }
+  },
+  "exclude": ["node_modules", "dist"]
 }
