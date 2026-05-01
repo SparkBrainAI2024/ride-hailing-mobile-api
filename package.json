@@ -16,7 +16,13 @@
         "start:admin-api:dev": "ts-node -r tsconfig-paths/register apps/admin-api/main.ts",
         "start:driver-api": "ts-node -r tsconfig-paths/register apps/driver-api/main.ts",
         "start:driver-api:dev": "ts-node -r tsconfig-paths/register apps/driver-api/main.ts",
-        "lint": "eslint \"{apps,libs,test}/**/*.ts\" --fix"
+        "lint": "eslint \"{apps,libs,test}/**/*.ts\" --fix",
+        "test": "jest --config jest.config.js",
+        "test:watch": "jest --config jest.config.js --watch",
+        "test:cov": "jest --config jest.config.js --coverage",
+        "test:api": "jest --config apps/api/jest.config.js",
+        "test:admin-api": "jest --config apps/admin-api/jest.config.js",
+        "test:driver-api": "jest --config apps/driver-api/jest.config.js"
     },
     "dependencies": {
         "@apollo/server": "^5.5.0",
@@ -87,16 +93,5 @@
         "ts-node": "^10.9.2",
         "tsconfig-paths": "4.2.0",
         "typescript": "^5.9.3"
-    },
-    "jest": {
-        "moduleFileExtensions": ["js", "json", "ts"],
-        "rootDir": ".",
-        "testRegex": ".*\\.spec\\.ts$",
-        "transform": {
-            "^.+\\.(t|j)s$": "ts-jest"
-        },
-        "collectCoverageFrom": ["**/*.(t|j)s"],
-        "coverageDirectory": "./coverage",
-        "testEnvironment": "node"
     }
 }
