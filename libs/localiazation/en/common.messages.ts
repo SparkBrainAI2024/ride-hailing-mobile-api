@@ -1,0 +1,16 @@
+export const COMMON = {
+  SOME_THING_WENT_WRONG: "Some thing went wrong",
+  INVALID_TOKEN: "Invalid or expired token.",
+  USER_NOT_FOUND: "User not found.",
+  SUSPENDED: "User suspended.",
+  USER_NOT_VERIFIED: "User not verified.",
+  UNAUTHORIZED: "Unauthorized",
+  INVALID_AREA: "Invalid room area (must be a number between 0–100000)",
+  DESCRIPTION_TOO_LONG: "Description exceeds allowed length",
+  INVALID_DESCRIPTION: "Invalid room description",
+  INVALID_PAGE: "Invalid page number.",
+  INVALID_PAGE_SIZE: "Invalid page size.",
+  INTERNAL_SERVER_ERROR: "Something went wrong. Please try again later.",
+  INVALID_FILE_TYPE: "Invalid file type.",
+  INVALID_FILE_SIZE: "Invalid file size.",
+};

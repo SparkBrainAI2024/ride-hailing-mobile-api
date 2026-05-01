@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "ignoreDeprecations": "6.0",
     "moduleResolution": "node",
     "declaration": true,
     "removeComments": true,
@@ -12,14 +11,14 @@
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
+    "ignoreDeprecations": "6.0",
     "paths": {
-      "@libs/common": ["libs/common/src"],
-      "@libs/common/*": ["libs/common/src/*"],
-      "@libs/data-access": ["libs/data-access/src"],
-      "@libs/data-access/*": ["libs/data-access/src/*"],
-      "@libs/s3": ["libs/s3/src"],
-      "@libs/s3/*": ["libs/s3/src/*"],
-      "@cms-modules/*": ["apps/cms-api/src/modules/*"]
+      "@libs/common": ["libs/common"],
+      "@libs/common/*": ["libs/common/*"],
+      "@libs/data-access": ["libs/data-access"],
+      "@libs/data-access/*": ["libs/data-access/*"],
+      "@libs/s3": ["libs/s3"],
+      "@libs/s3/*": ["libs/s3/*"]
     },
     "incremental": true,
     "skipLibCheck": true,
