@@ -1,0 +1,22 @@
+import mongoose from "mongoose"
+
+
+export const generateNanoId = (type?: string) => {
+    const mongodbObjectId = generateMongoDbId()
+    const mongodbStringId = ObjectIdToString(mongodbObjectId)
+    return type ? `${type}_${mongodbStringId}` : mongodbStringId
+}
+
+export const generateMongoDbId = () => {
+    return new mongoose.Types.ObjectId()
+}
+export const ObjectIdToString = (id) => {
+    return new mongoose.Types.ObjectId(id).toString();
+};
+
+export const StringToObjectId = (id) => {
+    return new mongoose.Types.ObjectId(id);
+};
+export const GenerateRandomDigit = (length: number) => {
+    return Math.floor(Math.pow(10, length - 1) + Math.random() * (Math.pow(10, length) - Math.pow(10, length - 1) - 1));
+}
