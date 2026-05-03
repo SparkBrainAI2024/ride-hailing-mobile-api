@@ -8,6 +8,7 @@ import { join } from 'path';
 import { envConfiguration, HealthResolver } from '@libs/common';
 //import { AuthResolver } from './modules/auth/resolver/auth.resolver';
 import { AuthModule } from './modules/auth/auth.module';
+import { UserModule } from './modules/user/user.module';
 
 @Module({
   imports: [
@@ -25,7 +26,8 @@ import { AuthModule } from './modules/auth/auth.module';
       introspection: true,
       plugins: [ApolloServerPluginLandingPageLocalDefault({ embed: true })],
     }),
-    AuthModule
+    AuthModule,
+    UserModule,
   ],
   providers: [HealthResolver],
 })

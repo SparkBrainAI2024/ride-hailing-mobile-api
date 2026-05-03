@@ -55,6 +55,12 @@
       "@libs/services/auth/*": [
         "libs/services/auth/src/*"
       ],
+      "@libs/services/user": [
+        "libs/services/user/src"
+      ],
+      "@libs/services/user/*": [
+        "libs/services/user/src/*"
+      ],
       "@libs/services/mail": [
         "libs/services/mail"
       ],

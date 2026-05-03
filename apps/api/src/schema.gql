@@ -62,8 +62,19 @@ type VerifyResetPasswordOtpResponse {
   resetPasswordToken: String!
 }
 
+type UserDetailEntity {
+  _id: String!
+  email: String!
+  verified: Boolean!
+  suspended: Boolean!
+  language: String!
+  loginAs: String!
+  userDetails: UserDetailsResponse!
+}
+
 type Query {
   health: String!
+  getUser: UserDetailEntity!
 }
 
 type Mutation {
@@ -75,6 +86,10 @@ type Mutation {
   sendVerifyEmailOtp(input: EmailInput!): BasicResponse!
   verifyResetPasswordOtp(input: VerifyEmailInput!): VerifyResetPasswordOtpResponse!
   resetPassword(input: ResetPasswordInput!): BasicResponse!
+  logOut(input: LogOutInput!): BasicResponse!
+  changePassword(input: ChangePasswordInput!): BasicResponse!
+  changeLanguage(input: ChangeLanguageInput!): BasicResponse!
+  verifyChangeEmailOTP(input: VerifyEmailInput!): BasicResponse!
 }
 
 input EmailSignUpInput {
@@ -119,4 +134,17 @@ input EmailInput {
 input ResetPasswordInput {
   password: String!
   resetPasswordToken: String!
+}
+
+input LogOutInput {
+  deviceId: String!
+}
+
+input ChangePasswordInput {
+  oldPassword: String!
+  newPassword: String!
+}
+
+input ChangeLanguageInput {
+  language: String!
 }

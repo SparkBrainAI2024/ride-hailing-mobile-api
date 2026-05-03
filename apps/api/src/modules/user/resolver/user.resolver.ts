@@ -1,18 +1,17 @@
 import { Resolver, Mutation, Query, Args } from "@nestjs/graphql";
 import { UseGuards } from "@nestjs/common";
-import { AuthGuard } from "src/common/guards";
-import { CurrentUser } from "src/common/decorators/user.decorator";
-import { CurrentLang } from "src/common/decorators/header.decorators";
-import { UserService } from "../services/user.services";
 import {
   ChangeLanguageInput,
   ChangePasswordInput,
   LogOutInput,
-  VerifyChangeEmailOTPInput,
+  VerifyEmailInput,
+  UserDetailEntity,
+  BasicResponse
 } from "@libs/data-access";
+import { AuthGuard } from "@libs/guards/guard";
+import { CurrentLang, CurrentUser } from "@libs/common";
+import { UserService } from "@libs/service/user/src";
 
-import { UserDetailEntity } from "../entities/user.entity";
-import { BasicResponse } from "src/common/entity/common.entity";
 
 @Resolver()
 @UseGuards(AuthGuard)
@@ -47,7 +46,7 @@ export class UserResolver {
 
   @Mutation(() => BasicResponse)
   verifyChangeEmailOTP(
-    @Args("input") input: VerifyChangeEmailOTPInput,
+    @Args("input") input: VerifyEmailInput,
     @CurrentUser() user,
     @CurrentLang() lang: string,
   ) {
