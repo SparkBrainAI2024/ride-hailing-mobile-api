@@ -14,6 +14,8 @@ export * from './entities/user-details.entity';
 //repositories
 export * from './repositories/user.repository';
 export * from './repositories/user-verfication.repository';
+export * from './repositories/device.repository';
+export * from './repositories/user-detail.repository';
 
 //enums
 export * from './enums/user.enum';

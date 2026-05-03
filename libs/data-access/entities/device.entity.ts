@@ -19,13 +19,8 @@ export class Device extends BaseEntity{
     })
     userId: Types.ObjectId;
 
-    @Field(() => ID)
-    @Prop({
-        type: Types.ObjectId,
-        index: true,
-        required: true,
-    })
-    deviceId: Types.ObjectId;
+    @Field(() => String)
+    deviceId: string;
 
     @Field({ nullable: true })
     @Prop({

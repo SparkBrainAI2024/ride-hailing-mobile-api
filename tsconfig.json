@@ -18,8 +18,17 @@
       "@libs/data-access": ["libs/data-access"],
       "@libs/data-access/*": ["libs/data-access/*"],
       "@libs/localization": ["libs/localization"],
+      "@libs/localization/*": ["libs/localization/*"],
       "@libs/s3": ["libs/s3"],
-      "@libs/s3/*": ["libs/s3/*"]
+      "@libs/s3/*": ["libs/s3/*"],
+      "@libs/service": ["libs/services"],
+      "@libs/service/*": ["libs/services/*"],
+      "@libs/services": ["libs/services"],
+      "@libs/services/*": ["libs/services/*"],
+      "@libs/services/auth": ["libs/services/auth/src"],
+      "@libs/services/auth/*": ["libs/services/auth/src/*"],
+      "@libs/services/mail": ["libs/services/mail"],
+      "@libs/services/mail/*": ["libs/services/mail/*"]
     },
     "incremental": true,
     "skipLibCheck": true,

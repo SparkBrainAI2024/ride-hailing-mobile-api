@@ -13,7 +13,7 @@ export class UserVerificationRepository extends BaseRepository<UserVerificationD
   constructor(@InjectModel(UserVerification.name) private readonly _model: BaseModel<UserVerificationDocument>) {
     super(_model);
   }
-    async deleteOtpById(id: string) {
+    async deleteOtpById(id: Types.ObjectId) {
         try {
             return await this.model.findByIdAndDelete(id)
         } catch (e) {

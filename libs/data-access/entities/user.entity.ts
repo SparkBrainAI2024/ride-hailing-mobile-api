@@ -52,6 +52,10 @@ export class User extends BaseEntity {
   @Prop({ default: null })
   lastLogin?: Date;
 
+  @Field({ nullable: true })
+  @Prop()
+  phone?: string;
+
   @Field(() => language, { defaultValue: language.EN })
   @Prop({ type: String, enum: language, default: language.EN })
   language: string;
