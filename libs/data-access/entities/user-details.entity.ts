@@ -50,5 +50,10 @@ export class UserDetails extends BaseEntity {
   })
   gender: string;
 }
-
 export const UserDetailsSchema = SchemaFactory.createForClass(UserDetails);
+
+export const userDetailModel = {
+  name: UserDetails.name,
+  schema: UserDetailsSchema,
+};
+

@@ -44,3 +44,7 @@ export class Device extends BaseEntity{
 }
 
 export const DeviceSchema = SchemaFactory.createForClass(Device);
+export const deviceModel = {
+  name: Device.name,
+  schema: DeviceSchema,
+};

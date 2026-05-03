@@ -6,7 +6,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { join } from 'path';
 import { envConfiguration, HealthResolver } from '@libs/common';
-import { CmsModule } from './modules/cms/cms.module';
 
 @Module({
   imports: [
@@ -24,7 +23,6 @@ import { CmsModule } from './modules/cms/cms.module';
       introspection: true,
       plugins: [ApolloServerPluginLandingPageLocalDefault({ embed: true })],
     }),
-    CmsModule,
   ],
   providers: [HealthResolver],
 })

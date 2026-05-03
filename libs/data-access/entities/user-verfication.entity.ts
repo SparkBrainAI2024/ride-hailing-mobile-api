@@ -29,6 +29,10 @@ export class UserVerification extends BaseEntity {
 
 export const UserVerificationSchema =
   SchemaFactory.createForClass(UserVerification);
+export const userVerificationModel = {
+  name: UserVerification.name,
+  schema: UserVerificationSchema,
+};
 UserVerificationSchema.index(
   { createdAt: 1 },
   { expireAfterSeconds: userOtpExpiredTime },

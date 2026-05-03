@@ -17,6 +17,7 @@
       "@libs/common/*": ["libs/common/*"],
       "@libs/data-access": ["libs/data-access"],
       "@libs/data-access/*": ["libs/data-access/*"],
+      "@libs/localization": ["libs/localization"],
       "@libs/s3": ["libs/s3"],
       "@libs/s3/*": ["libs/s3/*"]
     },
