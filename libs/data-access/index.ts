@@ -42,6 +42,7 @@ export * from './dtos/input/geo-location.input';
 export * from './dtos/input/reset-password.input';
 export * from './dtos/input/set-password.input';
 export * from './dtos/input/verify-email.input';
+export * from './dtos/input/refresh-token.input';
 
 // dtos - response
 export * from './dtos/response/basic.response';

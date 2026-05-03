@@ -1,5 +1,5 @@
 import { Field, InputType } from "@nestjs/graphql";
-import { IsNotEmpty } from "class-validator/types/decorator/common/IsNotEmpty";
+import { IsNotEmpty } from "class-validator";
 
 @InputType()
 export class DeviceInput {

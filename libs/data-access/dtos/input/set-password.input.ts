@@ -1,8 +1,5 @@
 import { Field, InputType } from "@nestjs/graphql";
-import { IsNotEmpty } from "class-validator/types/decorator/common/IsNotEmpty";
-import { MinLength } from "class-validator/types/decorator/string/MinLength";
-import { MaxLength } from "class-validator/types/decorator/string/MaxLength";
-import { Matches } from "class-validator";
+import { Matches,MinLength,MaxLength,IsNotEmpty } from "class-validator";
 import { passwordRegex } from "@libs/common/constants";
 import { DeviceInput } from "./device.input";
 

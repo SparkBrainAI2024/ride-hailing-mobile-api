@@ -1,13 +1,7 @@
 import { phoneRegex } from "@libs/common/constants";
 import { GenderEnum } from "@libs/data-access";
 import { Field, InputType } from "@nestjs/graphql";
-import { IsNotEmpty } from "class-validator/types/decorator/common/IsNotEmpty";
-import { IsEmail } from "class-validator/types/decorator/string/IsEmail";
-import { Matches } from "class-validator/types/decorator/string/Matches";
-import { MaxLength } from "class-validator/types/decorator/string/MaxLength";
-import { MinLength } from "class-validator/types/decorator/string/MinLength";
-import { IsEnum } from "class-validator/types/decorator/typechecker/IsEnum";
-
+import { IsEnum,IsEmail,IsNotEmpty, Matches,MaxLength,MinLength } from "class-validator";
 @InputType()
 export class EmailSignUpInput {
   @Field()

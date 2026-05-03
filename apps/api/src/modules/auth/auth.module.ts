@@ -1,0 +1,12 @@
+import { Module } from "@nestjs/common";
+import { AuthResolver } from "./resolver/auth.resolver";
+import { UserAuthModule } from "@libs/service/auth/src/auth.module";
+@Module({
+  imports: [
+    UserAuthModule.forRoot(), // ✅ use it properly
+  ],
+  providers: [
+   AuthResolver
+  ]
+})
+export class AuthModule {}
