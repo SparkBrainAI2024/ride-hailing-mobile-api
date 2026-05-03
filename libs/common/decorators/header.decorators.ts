@@ -17,7 +17,8 @@
 
 import { createParamDecorator, ExecutionContext } from "@nestjs/common";
 import { GqlExecutionContext } from "@nestjs/graphql";
-import { LANG_HEADER } from "../guards"; // Ensure this points to your header key
+import { LANG_HEADER } from "../constants";
+// Ensure this points to your header key
 
 export const CurrentLang = createParamDecorator(
   (data: unknown, context: ExecutionContext) => {
