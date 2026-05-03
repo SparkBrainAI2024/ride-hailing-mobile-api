@@ -43,6 +43,11 @@ export * from './dtos/input/reset-password.input';
 export * from './dtos/input/set-password.input';
 export * from './dtos/input/verify-email.input';
 export * from './dtos/input/refresh-token.input';
+export * from './dtos/input/change-email.input';
+export * from './dtos/input/change-password.input';
+export * from './dtos/input/change-language.input';
+export * from './dtos/input/change-email.input';
+export * from './dtos/input/logout-input';
 
 // dtos - response
 export * from './dtos/response/basic.response';
@@ -51,3 +56,4 @@ export * from './dtos/response/sigin.response';
 export * from './dtos/response/signup.response';
 export * from './dtos/response/user-detail.response';
 export * from './dtos/response/verify-password-reset.repsonse';
+export * from './dtos/response/user-detail-response-v2';
