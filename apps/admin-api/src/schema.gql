@@ -1,0 +1,14 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type CmsEntity {
+  _id: ID!
+  key: String!
+  value: String!
+}
+
+type Query {
+  health: String!
+  cmsContents: [CmsEntity!]!
+}
