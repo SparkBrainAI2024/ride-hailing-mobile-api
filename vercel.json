@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "apps/api/src/main.ts",
+      "use": "@vercel/node",
+      "config": { "maxLambdaSize": 50000000, "includeFiles": ["apps/api/src/schema.gql"] }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/graphql",
+      "dest": "apps/api/src/main.ts"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "apps/api/src/main.ts"
+    }
+  ]
+}

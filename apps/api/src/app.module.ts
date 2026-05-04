@@ -22,9 +22,13 @@ import { UserModule } from './modules/user/user.module';
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'apps/api/src/schema.gql'),
-      playground: false,
+      playground: true,
       introspection: true,
-      plugins: [ApolloServerPluginLandingPageLocalDefault({ embed: true })],
+      plugins: [
+        ApolloServerPluginLandingPageLocalDefault({
+          embed: true,
+        }),
+      ],
     }),
     AuthModule,
     UserModule,

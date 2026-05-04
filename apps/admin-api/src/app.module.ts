@@ -19,7 +19,7 @@ import { envConfiguration, HealthResolver } from '@libs/common';
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'apps/admin-api/src/schema.gql'),
-      playground: false,
+      playground: true,
       introspection: true,
       plugins: [ApolloServerPluginLandingPageLocalDefault({ embed: true })],
     }),
