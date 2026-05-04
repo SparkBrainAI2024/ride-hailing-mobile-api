@@ -7,7 +7,7 @@
     "license": "UNLICENSED",
     "scripts": {
         "prebuild": "rimraf dist",
-        "build": "nest build api && nest build admin-api && nest build driver-api",
+        "build": "rimraf dist && nest build api && nest build admin-api && nest build driver-api",
         "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
         "start": "npm run start:api",
         "start:api": "nest start api",
@@ -67,6 +67,7 @@
         "reflect-metadata": "^0.2.2",
         "rimraf": "^6.0.1",
         "rxjs": "^7.8.2",
+        "swc-loader": "^0.2.7",
         "uuid": "^13.0.0"
     },
     "devDependencies": {

@@ -8,6 +8,7 @@
     "node"
   ],
   "include": [
+    "src/main.ts",
     "src/**/*"
   ],
   "exclude": [

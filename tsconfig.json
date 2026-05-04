@@ -43,12 +43,6 @@
       "@libs/s3/*": [
         "libs/s3/*"
       ],
-      "@libs/service": [
-        "libs/services"
-      ],
-      "@libs/service/*": [
-        "libs/services/*"
-      ],
       "@libs/services": [
         "libs/services"
       ],

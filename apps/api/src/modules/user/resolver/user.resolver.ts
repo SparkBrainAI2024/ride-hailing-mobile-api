@@ -10,7 +10,7 @@ import {
 } from "@libs/data-access";
 import { AuthGuard } from "@libs/guards/guard";
 import { CurrentLang, CurrentUser } from "@libs/common";
-import { UserService } from "@libs/service/user/src";
+import { UserService } from "@libs/services/user/user.service";
 
 
 @Resolver()
