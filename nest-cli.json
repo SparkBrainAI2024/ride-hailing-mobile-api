@@ -3,6 +3,7 @@
   "collection": "@nestjs/schematics",
   "monorepo": true,
   "root": "apps/api",
+  "sourceRoot": "apps/api/src",
   "projects": {
     "api": {
       "type": "application",
@@ -29,6 +30,60 @@
       "sourceRoot": "apps/driver-api/src",
       "compilerOptions": {
         "tsConfigPath": "apps/driver-api/tsconfig.app.json"
+      }
+    },
+    "s3": {
+      "type": "library",
+      "root": "libs/s3",
+      "entryFile": "index",
+      "sourceRoot": "libs/s3/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/s3/tsconfig.lib.json"
+      }
+    },
+    "common": {
+      "type": "library",
+      "root": "libs/common",
+      "entryFile": "index",
+      "sourceRoot": "libs/common/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/common/tsconfig.lib.json"
+      }
+    },
+    "services": {
+      "type": "library",
+      "root": "libs/services",
+      "entryFile": "index",
+      "sourceRoot": "libs/services/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/services/tsconfig.lib.json"
+      }
+    },
+    "data-access": {
+      "type": "library",
+      "root": "libs/data-access",
+      "entryFile": "index",
+      "sourceRoot": "libs/data-access/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/data-access/tsconfig.lib.json"
+      }
+    },
+    "localization": {
+      "type": "library",
+      "root": "libs/localization",
+      "entryFile": "index",
+      "sourceRoot": "libs/localization/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/localization/tsconfig.lib.json"
+      }
+    },
+    "guards": {
+      "type": "library",
+      "root": "libs/guards",
+      "entryFile": "index",
+      "sourceRoot": "libs/guards/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/guards/tsconfig.lib.json"
       }
     }
   }
