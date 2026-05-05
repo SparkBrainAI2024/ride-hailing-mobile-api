@@ -18,17 +18,17 @@ import { UserModule } from './modules/user/user.module';
         uri: configService.get<string>('DB_CONNECTION_URL'),
       }),
     }),
-    GraphQLModule.forRoot<ApolloDriverConfig>({
-      driver: ApolloDriver,
-      autoSchemaFile: join(process.cwd(), 'apps/api/src/schema.gql'),
-      playground: true,
-      introspection: true,
-      plugins: [
-        ApolloServerPluginLandingPageLocalDefault({
-          embed: true,
-        }),
-      ],
-    }),
+     GraphQLModule.forRoot<ApolloDriverConfig>({
+       driver: ApolloDriver,
+       autoSchemaFile: join(process.cwd(), 'apps/api/src/schema.gql'),
+       playground: false,
+       introspection: true,
+       plugins: [
+         ApolloServerPluginLandingPageLocalDefault({
+           embed: true,
+         }),
+       ],
+     }),
     AuthModule,
     UserModule,
   ],
