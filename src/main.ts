@@ -1,6 +1,5 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
-import { PORT } from "./config";
 import {
   NestExpressApplication,
   ExpressAdapter,
@@ -9,19 +8,12 @@ import { HttpExceptionFilter } from "./common/exceptions/error.exception";
 import { join } from "path";
 import * as compression from "compression";
 import helmet from "helmet";
-import * as express from "express";
-
-const server = express();
-let app: NestExpressApplication;
 
 async function bootstrap() {
-  if (app) return app;
-  const appOptions = { cors: true };
-
-  app = await NestFactory.create<NestExpressApplication>(
+  const app = await NestFactory.create<NestExpressApplication>(
     AppModule,
-    new ExpressAdapter(server),
-    appOptions,
+    new ExpressAdapter(),
+    { cors: true }
   );
 
   app.enableCors({
@@ -48,7 +40,7 @@ async function bootstrap() {
     helmet({
       contentSecurityPolicy: false,
       crossOriginEmbedderPolicy: false,
-    }),
+    })
   );
 
   app.use(compression());
@@ -57,20 +49,10 @@ async function bootstrap() {
     prefix: "/files/",
   });
 
-  await app.init();
-
-  return app;
+  const port = process.env.PORT || 3000;
+  // ✅ Must bind to 0.0.0.0 for Railway
+  await app.listen(port, "0.0.0.0");
+  console.log(`🚀 Server running on port ${port}`);
 }
 
-if (process.env.NODE_ENV !== "production") {
-  bootstrap().then(() => {
-    app.listen(process.env.PORT || 3000, () => {
-      console.log(`🚀 Server running on http://localhost:${process.env.PORT || 3000}`);
-    });
-  });
-}
-
-export default async function handler(req, res) {
-  await bootstrap();
-  return server(req, res);
-}
+bootstrap();
