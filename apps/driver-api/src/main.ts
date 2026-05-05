@@ -62,14 +62,18 @@ async function bootstrap() {
   return app;
 }
 
-if (process.env.NODE_ENV !== "production") {
-  bootstrap().then(() => {
-    app.listen(process.env.port || 3002, () => {
-      console.log(`🚀 Server running on http://localhost:${process.env.port || 3002}`);
-    });
+// For traditional server deployment (Railway, Heroku, etc.)
+bootstrap().then(() => {
+  const port = Number(process.env.PORT) || 3002;
+  server.listen(port, "0.0.0.0", () => {
+    console.log(`🚀 Driver API running on port ${port}`);
   });
-}
+}).catch((err) => {
+  console.error('Failed to bootstrap app:', err);
+  process.exit(1);
+});
 
+// For serverless deployment (keep for backward compatibility)
 export default async function handler(req, res) {
   await bootstrap();
   return server(req, res);
