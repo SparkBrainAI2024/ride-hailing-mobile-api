@@ -25,7 +25,7 @@
         "test:driver-api": "jest --config apps/driver-api/jest.config.js"
     },
     "dependencies": {
-        "@apollo/server": "^4.13.0",
+        "@apollo/server": "^5.5.0",
         "@as-integrations/express5": "^1.1.2",
         "@aws-sdk/client-s3": "^3.932.0",
         "@aws-sdk/s3-request-presigner": "^3.932.0",
