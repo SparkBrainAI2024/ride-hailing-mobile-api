@@ -7,6 +7,7 @@ import { FileModule } from "./modules/file/file.module";
 import { GraphQLModule } from "@nestjs/graphql";
 import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
 import { join } from "path";
+import { HealthController } from "./health.controller";
 
 const isProduction = process.env.NODE_ENV === "production";
 
@@ -58,7 +59,7 @@ const isProduction = process.env.NODE_ENV === "production";
     FileModule,
     UserModules,
   ],
-  controllers: [],
+  controllers: [HealthController],
   providers: [],
 })
 export class AppModule {}
