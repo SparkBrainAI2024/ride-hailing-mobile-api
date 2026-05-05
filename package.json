@@ -7,7 +7,7 @@
     "license": "UNLICENSED",
     "scripts": {
         "prebuild": "rimraf dist",
-        "build": "rimraf dist && nest build api && nest build admin-api && nest build driver-api && tsc-alias",
+        "build": "rimraf dist && tsc && tsc-alias && nest build api && nest build admin-api && nest build driver-api",
         "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
         "start": "npm run start:api",
         "start:api": "nest start api",
