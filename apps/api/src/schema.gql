@@ -1,0 +1,150 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type GeoLocation {
+  type: String!
+  coordinates: [Float!]!
+}
+
+type BasicResponse {
+  message: String!
+  success: Boolean!
+}
+
+type CoreUserDetailsResponse {
+  email: String!
+  verified: Boolean!
+  suspended: Boolean!
+  profileCompleted: Boolean!
+  _id: String!
+  language: String!
+  phone: String
+}
+
+type UserDetailsResponse {
+  _id: String
+  userId: String
+  fullName: String
+  gender: GenderEnum
+  address: String
+  phone: String
+  email: String
+  profileImage: String
+  dateOfBirth: String
+  bio: String
+  createdAt: String
+}
+
+enum GenderEnum {
+  MALE
+  FEMALE
+  OTHERS
+  UNPUBLISHED
+}
+
+type SignInResponse {
+  accessToken: String!
+  refreshToken: String!
+  user: CoreUserDetailsResponse!
+  userDetails: UserDetailsResponse!
+}
+
+type SignUpResponse {
+  message: String!
+  success: Boolean!
+  userToken: String
+}
+
+type VerifyResetPasswordOtpResponse {
+  message: String!
+  success: Boolean!
+  resetPasswordToken: String!
+}
+
+type UserDetailEntity {
+  _id: String!
+  email: String!
+  verified: Boolean!
+  suspended: Boolean!
+  language: String!
+  loginAs: String!
+  userDetails: UserDetailsResponse!
+}
+
+type Query {
+  health: String!
+  getUser: UserDetailEntity!
+}
+
+type Mutation {
+  signUp(input: EmailSignUpInput!): SignUpResponse!
+  setPassword(input: SetPasswordInput!): SignInResponse!
+  verifyEmail(input: VerifyEmailInput!): BasicResponse!
+  signIn(input: EmailSignInInput!): SignInResponse!
+  loginWithRefreshToken(input: RefreshTokenInput!): SignInResponse!
+  sendVerifyEmailOtp(input: EmailInput!): BasicResponse!
+  verifyResetPasswordOtp(input: VerifyEmailInput!): VerifyResetPasswordOtpResponse!
+  resetPassword(input: ResetPasswordInput!): BasicResponse!
+  logOut(input: LogOutInput!): BasicResponse!
+  changePassword(input: ChangePasswordInput!): BasicResponse!
+  changeLanguage(input: ChangeLanguageInput!): BasicResponse!
+  verifyChangeEmailOTP(input: VerifyEmailInput!): BasicResponse!
+}
+
+input EmailSignUpInput {
+  email: String!
+  fullName: String!
+  phone: String!
+  gender: GenderEnum!
+}
+
+input SetPasswordInput {
+  userToken: String!
+  password: String!
+  confirmPassword: String!
+  device: DeviceInput
+}
+
+input DeviceInput {
+  deviceId: String!
+  firebaseToken: String!
+  deviceType: String!
+}
+
+input VerifyEmailInput {
+  email: String!
+  otp: String!
+}
+
+input EmailSignInInput {
+  email: String!
+  password: String!
+  device: DeviceInput
+}
+
+input RefreshTokenInput {
+  refreshToken: String!
+}
+
+input EmailInput {
+  email: String!
+}
+
+input ResetPasswordInput {
+  password: String!
+  resetPasswordToken: String!
+}
+
+input LogOutInput {
+  deviceId: String!
+}
+
+input ChangePasswordInput {
+  oldPassword: String!
+  newPassword: String!
+}
+
+input ChangeLanguageInput {
+  language: String!
+}

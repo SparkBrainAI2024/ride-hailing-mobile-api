@@ -5,20 +5,30 @@
     "author": "",
     "private": true,
     "license": "UNLICENSED",
-     "scripts": {
+    "scripts": {
         "prebuild": "rimraf dist",
-        "build": "nest build",
-        "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-        "start": "nest start",
-        "start:dev": "nest start --watch",
-        "start:debug": "nest start --debug --watch",
-        "start:prod": "node dist/main",
-        "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-        "test": "jest",
-        "test:watch": "jest --watch",
-        "test:cov": "jest --coverage",
-        "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-        "test:e2e": "jest --config ./test/jest-e2e.json"
+        "build": "rimraf dist && nest build api  && nest build admin-api && nest build driver-api",
+        "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
+        "start": "npm run start:api",
+        "start:api": "nest start api",
+        "start:api:dev": "nest start api --watch",
+        "build:api": "nest build api",
+        "build:admin-api": "nest build admin-api",
+        "build:driver-api": "nest build driver-api",
+        "start:admin-api": "nest start admin-api",
+        "start:admin-api:dev": "nest start admin-api --watch",
+        "start:driver-api": "nest start driver-api",
+        "start:driver-api:dev": "nest start driver-api --watch",
+        "start:driver-api:prod": "node dist/apps/driver-api/main.js",
+        "start:admin-api:prod": "node dist/apps/admin-api/main.js",
+        "start:api:prod": "node dist/apps/api/main.js",
+        "lint": "eslint \"{apps,libs,test}/**/*.ts\" --fix",
+        "test": "jest --config jest.config.js",
+        "test:watch": "jest --config jest.config.js --watch",
+        "test:cov": "jest --config jest.config.js --coverage",
+        "test:api": "jest --config apps/api/jest.config.js",
+        "test:admin-api": "jest --config apps/admin-api/jest.config.js",
+        "test:driver-api": "jest --config apps/driver-api/jest.config.js"
     },
     "dependencies": {
         "@apollo/server": "^5.5.0",
@@ -26,7 +36,7 @@
         "@aws-sdk/client-s3": "^3.932.0",
         "@aws-sdk/s3-request-presigner": "^3.932.0",
         "@nestjs-modules/mailer": "^2.0.1",
-        "@nestjs/apollo": "^13.2.4",
+        "@nestjs/apollo": "^13.0.0",
         "@nestjs/common": "^11.1.8",
         "@nestjs/config": "^4.0.2",
         "@nestjs/core": "^11.1.8",
@@ -42,6 +52,7 @@
         "@types/moment-timezone": "^0.5.30",
         "@types/nanoid": "^3.0.0",
         "@types/uuid": "^11.0.0",
+        "@vendia/serverless-express": "^4.12.6",
         "axios": "^1.13.2",
         "bcryptjs": "^3.0.2",
         "class-transformer": "^0.5.1",
@@ -51,6 +62,7 @@
         "dotenv": "^17.2.3",
         "express": "^5.2.1",
         "graphql": "^16.13.2",
+        "graphql-scalars": "^1.25.0",
         "handlebars": "^4.7.8",
         "helmet": "^8.1.0",
         "jsonwebtoken": "^9.0.2",
@@ -58,11 +70,13 @@
         "mongoose": "^8.19.2",
         "multer": "^2.0.2",
         "nanoid": "^5.1.6",
-        "nodemailer": "^7.0.10",
+        "nodemailer": "^8.0.7",
         "reflect-metadata": "^0.2.2",
         "rimraf": "^6.0.1",
         "rxjs": "^7.8.2",
-        "uuid": "^13.0.0",
+        "swc-loader": "^0.2.7",
+        "tsc-alias": "^1.8.17",
+        "uuid": "^11.1.1",
         "@nestjs/cli": "^11.0.10"
     },
     "devDependencies": {
@@ -89,22 +103,5 @@
         "ts-node": "^10.9.2",
         "tsconfig-paths": "4.2.0",
         "typescript": "^5.9.3"
-    },
-    "jest": {
-        "moduleFileExtensions": [
-            "js",
-            "json",
-            "ts"
-        ],
-        "rootDir": "src",
-        "testRegex": ".*\\.spec\\.ts$",
-        "transform": {
-            "^.+\\.(t|j)s$": "ts-jest"
-        },
-        "collectCoverageFrom": [
-            "**/*.(t|j)s"
-        ],
-        "coverageDirectory": "../coverage",
-        "testEnvironment": "node"
     }
 }
