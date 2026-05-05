@@ -76,7 +76,8 @@
         "rxjs": "^7.8.2",
         "swc-loader": "^0.2.7",
         "tsc-alias": "^1.8.17",
-        "uuid": "^11.1.1"
+        "uuid": "^11.1.1",
+        "@nestjs/cli": "^11.0.10"
     },
     "devDependencies": {
         "@nestjs/schematics": "^11.0.9",
