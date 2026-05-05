@@ -14,13 +14,9 @@ const server = express();
 let app: NestExpressApplication;
 
 async function bootstrap() {
-  if (app) return app;
-  const appOptions = { cors: true };
-
-  app = await NestFactory.create<NestExpressApplication>(
+  const app = await NestFactory.create<NestExpressApplication>(
     AppModule,
-    new ExpressAdapter(server),
-    appOptions,
+    { cors: true }
   );
 
   app.enableCors({
@@ -47,7 +43,7 @@ async function bootstrap() {
     helmet({
       contentSecurityPolicy: false,
       crossOriginEmbedderPolicy: false,
-    }),
+    })
   );
 
   app.use(compression());
@@ -56,9 +52,10 @@ async function bootstrap() {
     prefix: "/files/",
   });
 
-  await app.init();
-
-  return app;
+  const port = process.env.PORT;
+  // ✅ Must bind to 0.0.0.0 for Railway
+  await app.listen(port, "0.0.0.0");
+  console.log(`🚀 Server running on port ${port}`);
 }
 
 // For traditional server deployment (Railway, Heroku, etc.)
