@@ -4,7 +4,7 @@
     {
       "src": "apps/driver-api/main.js",
       "use": "@vercel/node",
-      "config": { "maxLambdaSize": 50000000, "includeFiles": ["apps/driver-api/src/schema.gql"] }
+      "config": { "maxLambdaSize": 50000000 }
     }
   ],
   "routes": [
