@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "apps/driver-api/src/main.ts",
+      "src": "apps/driver-api/src/main.js",
       "use": "@vercel/node",
       "config": { "maxLambdaSize": 50000000, "includeFiles": ["apps/driver-api/src/schema.gql"] }
     }
@@ -10,11 +10,11 @@
   "routes": [
     {
       "src": "/graphql",
-      "dest": "apps/driver-api/src/main.ts"
+      "dest": "apps/driver-api/src/main.js"
     },
     {
       "src": "/(.*)",
-      "dest": "apps/driver-api/src/main.ts"
+      "dest": "apps/driver-api/src/main.js"
     }
   ]
 }
