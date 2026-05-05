@@ -3,10 +3,10 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
-  const port = Number(process.env.API_PORT || 3000);
-  await app.listen(port);
+  const port = Number(process.env.PORT || 3000);
+  await app.listen(port, '0.0.0.0');
   // eslint-disable-next-line no-console
-  console.log(`API running at http://localhost:${port}/graphql`);
+  console.log(`API running on port ${port}`);
 }
 
 bootstrap();

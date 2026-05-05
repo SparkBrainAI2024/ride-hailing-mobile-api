@@ -4,11 +4,10 @@ import {
   NestExpressApplication,
   ExpressAdapter,
 } from "@nestjs/platform-express";
-"";
 import { join } from "path";
-import * as compression from "compression";
+import compression from "compression";
 import helmet from "helmet";
-import  express from "express";
+import express from "express";
 import { HttpExceptionFilter } from "@libs/common";
 
 const server = express();
