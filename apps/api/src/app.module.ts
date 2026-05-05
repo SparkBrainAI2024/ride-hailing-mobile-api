@@ -6,7 +6,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { join } from 'path';
 import { envConfiguration, HealthResolver } from '@libs/common';
-//import { AuthResolver } from './modules/auth/resolver/auth.resolver';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 
