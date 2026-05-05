@@ -2,7 +2,6 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 export const DB_CONNECTION_URL = process.env.DB_CONNECTION_URL;
-export const PORT = process.env.PORT;
 export const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL;
 export const SUPPORT_EMAIL_AUTH = process.env.SUPPORT_EMAIL_AUTH;
 export const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
