@@ -52,10 +52,7 @@ async function bootstrap() {
     prefix: "/files/",
   });
 
-  const port = process.env.PORT;
-  // ✅ Must bind to 0.0.0.0 for Railway
-  await app.listen(port, "0.0.0.0");
-  console.log(`🚀 Server running on port ${port}`);
+  return app;
 }
 
 // For traditional server deployment (Railway, Heroku, etc.)
