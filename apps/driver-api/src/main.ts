@@ -10,9 +10,6 @@ import helmet from "helmet";
 import express from "express";
 import { HttpExceptionFilter } from "@libs/common";
 
-const server = express();
-let app: NestExpressApplication;
-
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(
     AppModule,
@@ -56,9 +53,9 @@ async function bootstrap() {
 }
 
 // For traditional server deployment (Railway, Heroku, etc.)
-bootstrap().then(() => {
+bootstrap().then((app) => {
   const port = Number(process.env.PORT) || 3002;
-  server.listen(port, "0.0.0.0", () => {
+  app.listen(port, "0.0.0.0", () => {
     console.log(`🚀 Driver API running on port ${port}`);
   });
 }).catch((err) => {
@@ -68,6 +65,7 @@ bootstrap().then(() => {
 
 // For serverless deployment (keep for backward compatibility)
 export default async function handler(req, res) {
-  await bootstrap();
-  return server(req, res);
+  const app = await bootstrap();
+  const expressApp = app.getHttpAdapter().getInstance();
+  return expressApp(req, res);
 }
