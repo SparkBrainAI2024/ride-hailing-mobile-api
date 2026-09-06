@@ -45,4 +45,6 @@ export const AVAILABILITY = {
   TIME_SLOT_DAY_MISMATCH:
     "The day of the time slot start time does not match the availability day it belongs to.",
   MAJOR_STOPS_MAX: "A maximum of 5 major stops is allowed.",
+  DAY_BOOKED:
+    "Availability for this day cannot be updated because a ride has already been booked (confirmed or ongoing) for that day.",
 };

@@ -5,6 +5,8 @@ import {
   AvailabilitySchema,
   AvailabilityRepository,
   VehicleRepository,
+  Rides,
+  RidesSchema,
 } from "@libs/data-access";
 import { Vehicle, VehicleSchema } from "@libs/data-access/entities/vehicle.entity";
 
@@ -13,6 +15,7 @@ import { Vehicle, VehicleSchema } from "@libs/data-access/entities/vehicle.entit
     MongooseModule.forFeature([
       { name: Availability.name, schema: AvailabilitySchema },
       { name: Vehicle.name, schema: VehicleSchema },
+      { name: Rides.name, schema: RidesSchema },
     ]),
   ],
   providers: [AvailabilityRepository, VehicleRepository],

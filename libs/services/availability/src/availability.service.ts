@@ -1,5 +1,8 @@
 import { HttpStatus, Injectable, Logger } from "@nestjs/common";
-import { Types } from "mongoose";
+import { Model, Types } from "mongoose";
+import { InjectModel } from "@nestjs/mongoose";
+import { Rides } from "@libs/data-access/entities/rides.entity";
+import { RideStatus } from "@libs/data-access/enums/rides.enum";
 import axios from "axios";
 import { ErrorException, MATCHMAKING_CONFIG, toMongoId } from "@libs/common";
 import { EnvService } from "@libs/common/config/env.service";
@@ -227,6 +230,8 @@ export class AvailabilityService {
     private readonly availabilityRepository: AvailabilityRepository,
     private readonly vehicleRepository: VehicleRepository,
     private readonly envService: EnvService,
+    @InjectModel(Rides.name)
+    private readonly ridesModel: Model<any>,
   ) {}
 
   /**
@@ -402,6 +407,9 @@ export class AvailabilityService {
     if (!existing) {
       ErrorException(null, "AVAILABILITY.DAY_NOT_FOUND", HttpStatus.NOT_FOUND);
     }
+    // A day with a CONFIRMED or ONGOING booked ride is locked — the driver can
+    // only update availability for a day before anyone has booked a ride on it.
+    await this.assertDayNotBooked(driverId, dayDate);
     // Convert the Mongoose subdocument to a plain object first — spreading it
     // directly leaks internal state ($__parentArray, $__, _doc, $isNew) into
     // the update payload, which corrupts/blocks the write.
@@ -491,6 +499,31 @@ export class AvailabilityService {
     }
     await this.availabilityRepository.updateById(doc._id, { days });
     return { success: true, message: "AVAILABILITY.AVAILABILITY_REMOVED" };
+  }
+
+  /**
+   * Guards availability updates for a specific calendar day: if the driver
+   * already has a CONFIRMED or ONGOING ride booked for that day, the
+   * availability for that day can no longer be updated.
+   */
+  private async assertDayNotBooked(
+    driverId: string | Types.ObjectId,
+    dayDate: Date,
+  ): Promise<void> {
+    const driverMongoId =
+      driverId instanceof Types.ObjectId ? driverId : toMongoId(driverId);
+    const bookedRideCount = await this.ridesModel.countDocuments({
+      driverId: driverMongoId,
+      deleted: false,
+      rideStatus: { $in: [RideStatus.CONFIRMED, RideStatus.ONGOING] },
+      "schedule.bookingDate": utcStartOfDay(dayDate),
+    });
+    if (bookedRideCount > 0) {
+      this.logger.warn(
+        `updateAvailability blocked: driver ${driverMongoId} has ${bookedRideCount} confirmed/ongoing ride(s) on ${dayDate.toISOString()}`,
+      );
+      ErrorException(null, "AVAILABILITY.DAY_BOOKED", HttpStatus.BAD_REQUEST);
+    }
   }
 
   /**
