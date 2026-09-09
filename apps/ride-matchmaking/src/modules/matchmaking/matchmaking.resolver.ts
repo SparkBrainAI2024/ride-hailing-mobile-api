@@ -407,7 +407,7 @@ export class MatchmakingResolver {
   @Mutation(() => BasicResult, {
     name: "endScheduledRide",
     description:
-      "Driver ends a SCHEDULED ride - passenger dropped off, records rideEndedAt (status stays ONGOING until completed), publishes ride-ended and notifies passenger",
+      "Driver ends a SCHEDULED ride - passenger dropped off. Ends + acknowledges + completes: sets status to COMPLETED, finalizes the booking fare, publishes ride-completed and notifies passenger",
   })
   async endScheduledRide(
     @Args("rideId") rideId: string,
@@ -415,22 +415,6 @@ export class MatchmakingResolver {
   ): Promise<BasicResult> {
     this.logger.log(`GraphQL: Driver ${driverId} ending scheduled ride ${rideId}`);
     return this.matchmakingService.endScheduledRide(rideId, driverId);
-  }
-
-  @Mutation(() => CompleteRideResult, {
-    name: "completeScheduledRide",
-    description:
-      "Complete a SCHEDULED ride - finalizes the booking fare, sets status to COMPLETED, publishes ride-completed Ably event and notifies passenger",
-  })
-  async completeScheduledRide(
-    @Args("rideId") rideId: string,
-    @Args("driverId") driverId: string,
-  ): Promise<CompleteRideResult> {
-    const result = await this.matchmakingService.completeScheduledRide(rideId, driverId);
-    if (!result.success || !result.data) {
-      throw new Error(result.message || "Failed to complete scheduled ride");
-    }
-    return result.data;
   }
 
   @Mutation(() => BasicResult, {
