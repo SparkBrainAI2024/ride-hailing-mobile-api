@@ -191,20 +191,21 @@ export class TransactionService {
   async getDriverEarningsSummary(
     driverId: string,
     input: { period: EarningsPeriod; fromDate?: Date; toDate?: Date },
-  ): Promise<any> {0
+  ): Promise<any> {
     const { from, to, previousFrom, previousTo } =
       this.calculatePeriodRange(input);
 
-    const [current, previous] = await Promise.all([
+    // Run current summary, previous summary and online-hours in parallel —
+    // they are independent, so no reason to await them sequentially.
+    const [current, previous, totalOnlineHours] = await Promise.all([
       this.transactionRepo.getDriverEarningsSummary(driverId, from, to),
       this.transactionRepo.getDriverEarningsSummary(
         driverId,
         previousFrom,
         previousTo,
       ),
+      this.getTotalOnlineHours(driverId, from, to),
     ]);
-
-    const totalOnlineHours = await this.getTotalOnlineHours(driverId, from, to);
 
     // Trip increase = current period completed trips minus previous period completed trips
     const tripIncrease = current.tripsCompleted - previous.tripsCompleted;
@@ -327,10 +328,14 @@ export class TransactionService {
     const startDate = this.formatDate(from);
     const endDate = this.formatDate(to);
 
-    const statuses = await this.userDailyOnlineStatusRepository.find({
-      userId: new Types.ObjectId(driverId),
-      date: { $gte: startDate, $lte: endDate },
-    });
+    const statuses = await this.userDailyOnlineStatusRepository.find(
+      {
+        userId: new Types.ObjectId(driverId),
+        date: { $gte: startDate, $lte: endDate },
+      },
+      undefined,
+      { totalOnlineSeconds: 1 }, // projection: only the field we aggregate on
+    );
 
     if (!statuses.length) return 0;
 

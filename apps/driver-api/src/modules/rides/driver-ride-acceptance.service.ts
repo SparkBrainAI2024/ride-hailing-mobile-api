@@ -19,14 +19,9 @@ import { S3Service } from "@libs/s3/s3.service";
 import {
   CompleteRideInput,
   RidesRepository,
-  Transaction,
-  TransactionDirection,
-  TransactionDocument,
-  TransactionType,
 } from "@libs/data-access";
 import { ErrorException, toMongoId } from "@libs/common";
 import { DriverActionEnum } from "@libs/data-access/enums/matchmaking.enum";
-import { USER } from "@libs/localization/en/user.messages";
 
 // Cached GraphQL mutations to avoid string reconstruction on every call
 const DRIVER_RESPONSE_MUTATION = `
@@ -124,8 +119,6 @@ export class DriverRideAcceptanceService {
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     @InjectModel(UserDetails.name)
     private readonly userDetailsModel: Model<UserDetailsDocument>,
-    @InjectModel(Transaction.name)
-    private readonly transactionModel: Model<TransactionDocument>,
     @InjectModel(Vehicle.name)
     private readonly vehicleModel: Model<VehicleDocument>,
     private readonly rideChannelService: RideChannelService,

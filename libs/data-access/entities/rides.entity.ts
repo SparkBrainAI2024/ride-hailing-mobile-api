@@ -224,3 +224,6 @@ export const ridesModel = {
 
 RidesSchema.index({ deleted: 1, deletedAt: 1 });
 RidesSchema.index({ driverId: 1, createdAt: -1 });
+// Covers driver trip listing (getDriverTripsWithCommission) and
+// driver earnings summaries that filter completed rides per driver.
+RidesSchema.index({ driverId: 1, rideStatus: 1, createdAt: -1 });
