@@ -144,6 +144,73 @@ export class DriverRideResolver {
 
   }
 
+  private static readonly START_SCHEDULED_RIDE_MUTATION = `
+    mutation StartScheduledRide($rideId: String!, $driverId: String!) {
+      startScheduledRide(rideId: $rideId, driverId: $driverId) {
+        success
+        message
+      }
+    }
+  `;
+
+  private static readonly END_SCHEDULED_RIDE_MUTATION = `
+    mutation EndScheduledRide($rideId: String!, $driverId: String!) {
+      endScheduledRide(rideId: $rideId, driverId: $driverId) {
+        success
+        message
+      }
+    }
+  `;
+
+  @Roles(roles.RIDER)
+  @Mutation(() => BasicResponse, {
+    name: 'startScheduledRide',
+    description: 'Driver starts a SCHEDULED (booking) ride - passenger onboard, sets status to ONGOING, records rideStartedAt and notifies the passenger',
+  })
+  async startScheduledRide(
+    @CurrentUser() user: User,
+    @Args('rideId') rideId: string,
+  ): Promise<BasicResponse> {
+    this.logger.log(`GraphQL: Driver ${user._id} starting scheduled ride ${rideId}`);
+    return this.callMatchmakingMutation(
+      'startScheduledRide',
+      DriverRideResolver.START_SCHEDULED_RIDE_MUTATION,
+      { rideId, driverId: user._id.toString() },
+      'Failed to start scheduled ride',
+    );
+  }
+
+  @Roles(roles.RIDER)
+  @Mutation(() => BasicResponse, {
+    name: 'endScheduledRide',
+    description: 'Driver ends a SCHEDULED ride - passenger dropped off, records rideEndedAt (status stays ONGOING until completed) and notifies the passenger',
+  })
+  async endScheduledRide(
+    @CurrentUser() user: User,
+    @Args('rideId') rideId: string,
+  ): Promise<BasicResponse> {
+    this.logger.log(`GraphQL: Driver ${user._id} ending scheduled ride ${rideId}`);
+    return this.callMatchmakingMutation(
+      'endScheduledRide',
+      DriverRideResolver.END_SCHEDULED_RIDE_MUTATION,
+      { rideId, driverId: user._id.toString() },
+      'Failed to end scheduled ride',
+    );
+  }
+
+  @Roles(roles.RIDER)
+  @Mutation(() => Rides, {
+    name: 'completeScheduledRide',
+    description: 'Complete a SCHEDULED ride - finalizes the booking fare, sets status to COMPLETED, publishes ride-completed Ably event with fare breakdown',
+  })
+  async completeScheduledRide(
+    @CurrentUser() user: User,
+    @Args('rideId') rideId: string,
+  ): Promise<Rides> {
+    this.logger.log(`GraphQL: Driver ${user._id} completing scheduled ride ${rideId}`);
+    return this.driverRideAcceptanceService.completeScheduledRide({ rideId }, user._id.toString());
+  }
+
   @Roles(roles.RIDER)
   @Mutation(() => BasicResponse, {
     name: 'rejectRide',

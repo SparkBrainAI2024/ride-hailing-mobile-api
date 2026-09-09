@@ -392,6 +392,48 @@ export class MatchmakingResolver {
   }
 
   @Mutation(() => BasicResult, {
+    name: "startScheduledRide",
+    description:
+      "Driver starts a SCHEDULED (booking) ride - passenger onboard, sets status to ONGOING, records rideStartedAt, publishes ride-started and notifies passenger",
+  })
+  async startScheduledRide(
+    @Args("rideId") rideId: string,
+    @Args("driverId") driverId: string,
+  ): Promise<BasicResult> {
+    this.logger.log(`GraphQL: Driver ${driverId} starting scheduled ride ${rideId}`);
+    return this.matchmakingService.startScheduledRide(rideId, driverId);
+  }
+
+  @Mutation(() => BasicResult, {
+    name: "endScheduledRide",
+    description:
+      "Driver ends a SCHEDULED ride - passenger dropped off, records rideEndedAt (status stays ONGOING until completed), publishes ride-ended and notifies passenger",
+  })
+  async endScheduledRide(
+    @Args("rideId") rideId: string,
+    @Args("driverId") driverId: string,
+  ): Promise<BasicResult> {
+    this.logger.log(`GraphQL: Driver ${driverId} ending scheduled ride ${rideId}`);
+    return this.matchmakingService.endScheduledRide(rideId, driverId);
+  }
+
+  @Mutation(() => CompleteRideResult, {
+    name: "completeScheduledRide",
+    description:
+      "Complete a SCHEDULED ride - finalizes the booking fare, sets status to COMPLETED, publishes ride-completed Ably event and notifies passenger",
+  })
+  async completeScheduledRide(
+    @Args("rideId") rideId: string,
+    @Args("driverId") driverId: string,
+  ): Promise<CompleteRideResult> {
+    const result = await this.matchmakingService.completeScheduledRide(rideId, driverId);
+    if (!result.success || !result.data) {
+      throw new Error(result.message || "Failed to complete scheduled ride");
+    }
+    return result.data;
+  }
+
+  @Mutation(() => BasicResult, {
     name: "cancelInstantRide",
     description:
       "Passenger cancels an instant ride request before pickup. If driver already accepted, notifies driver via Ably with cancelled=true payload and deletes the ride.",

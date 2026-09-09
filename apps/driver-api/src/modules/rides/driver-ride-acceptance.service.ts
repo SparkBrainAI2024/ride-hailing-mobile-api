@@ -69,6 +69,26 @@ const COMPLETE_RIDE_MUTATION = `
   }
 `;
 
+const COMPLETE_SCHEDULED_RIDE_MUTATION = `
+  mutation CompleteScheduledRide($rideId: String!, $driverId: String!) {
+    completeScheduledRide(rideId: $rideId, driverId: $driverId) {
+      rideId
+      rideUUId
+      rideStatus
+      totalDurationInMinutes
+      totalDuration
+      completedAt
+      fareBreakdown {
+        baseFare
+        distanceCharge
+        discount
+        totalFare
+      }
+      walletAmount
+    }
+  }
+`;
+
 export interface DriverAcceptDetails {
   rideId: string;
   rideUUId: string;
@@ -421,6 +441,57 @@ export class DriverRideAcceptanceService {
       return updatedRide;
     } catch (err: any) {
       this.logger.error(`Failed to complete ride: ${err?.message || err}`);
+      // Re-throw HttpException as-is
+      if (err?.response || err?.status) {
+        throw err;
+      }
+      throw ErrorException(null, "Failed to call the matchmaking service", 500);
+    }
+  }
+
+  /**
+   * Driver completes a SCHEDULED (booking) ride.
+   * Calls the matchmaking service GraphQL endpoint which finalizes the
+   * booking fare, marks the ride COMPLETED, publishes the ride-completed
+   * Ably event and notifies the passenger.
+   */
+  async completeScheduledRide(
+    input: CompleteRideInput,
+    driverId: string,
+  ): Promise<Rides> {
+    const { rideId } = input || {};
+
+    if (!rideId) {
+      throw ErrorException(null, "RIDES.RIDE_ID_REQUIRED", 400);
+    }
+
+    this.logger.log(
+      `Driver ${driverId} attempting to complete scheduled ride ${rideId}`,
+    );
+
+    try {
+      const response = await axios.post(`${this.matchmakingUrl}/graphql`, {
+        query: COMPLETE_SCHEDULED_RIDE_MUTATION,
+        variables: { rideId, driverId },
+      });
+
+      const result = response.data?.data?.completeScheduledRide;
+      if (!result) {
+        const errorMsg =
+          response.data?.errors?.[0]?.message ||
+          "Failed to complete scheduled ride via matchmaking service";
+        this.logger.error(
+          `Matchmaking completeScheduledRide failed: ${JSON.stringify(response.data?.errors)}`,
+        );
+        throw ErrorException(null, errorMsg, 500);
+      }
+
+      // Fetch the updated ride to return
+      return await this.ridesRepository.findById(toMongoId(rideId));
+    } catch (err: any) {
+      this.logger.error(
+        `Failed to complete scheduled ride: ${err?.message || err}`,
+      );
       // Re-throw HttpException as-is
       if (err?.response || err?.status) {
         throw err;
