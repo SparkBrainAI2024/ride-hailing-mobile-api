@@ -1,11 +1,11 @@
 import { HttpStatus, Injectable, Logger } from "@nestjs/common";
 import { Types } from "mongoose";
 import { ErrorException } from "@libs/common";
-import { VehicleRepository } from "../../../../../libs/data-access/repositories/vehicle.repository";
-import { RegisterVehicleInput } from "../../../../../libs/data-access/dtos/input/create-vehicle.input";
+import { VehicleRepository } from "@libs/data-access/repositories/vehicle.repository";
+import { RegisterVehicleInput } from "@libs/data-access/dtos/input/create-vehicle.input";
 import { Message } from "@libs/localization";
 import { ImageStatus } from "@libs/data-access/enums/upload.enum";
-import { EditVehicleInput } from "../../../../../libs/data-access/dtos/input/update-vehicle.input";
+import { EditVehicleInput } from "@libs/data-access/dtos/input/update-vehicle.input";
 import { S3Service } from "@libs/s3/s3.service";
 import { Vehicle } from "@libs/data-access/entities/vehicle.entity";
 
@@ -21,7 +21,7 @@ export class VehicleService {
       // Check if number plate is already used by another vehicle
       const existingPlate = await this.vehicleRepository.findByNumberPlate(input.numberPlate);
       if (existingPlate) {
-        ErrorException(null, "VEHICLE.NUMBER_PLATE_ALREADY_EXISTS", HttpStatus.BAD_REQUEST);
+        throw ErrorException(null, "VEHICLE.NUMBER_PLATE_ALREADY_EXISTS", HttpStatus.BAD_REQUEST);
       }
 
       // Check if driver already has a vehicle → update it instead of creating a new one
@@ -65,7 +65,7 @@ export class VehicleService {
         vehicle,
       };
     } catch (e) {
-      ErrorException(e, "COMMON.INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
+      throw ErrorException(e, "COMMON.INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -74,7 +74,7 @@ async editVehicle(driverId: string, vehicleId: string, input: EditVehicleInput, 
   // Check vehicle exists and belongs to driver
   const vehicleExists = await this.vehicleRepository.findById(new Types.ObjectId(vehicleId));
   if (!vehicleExists || vehicleExists.driverId.toString() !== driverId.toString()) {
-    ErrorException(null, "VEHICLE.NOT_FOUND", HttpStatus.NOT_FOUND);
+    throw ErrorException(null, "VEHICLE.NOT_FOUND", HttpStatus.NOT_FOUND);
   }
 
   // Check plate belongs to someone ELSE, not this vehicle
@@ -84,7 +84,7 @@ async editVehicle(driverId: string, vehicleId: string, input: EditVehicleInput, 
       _id: { $ne: new Types.ObjectId(vehicleId) },
     });
     if (plateExists) {
-      ErrorException(null, "VEHICLE.NUMBER_PLATE_ALREADY_EXISTS", HttpStatus.BAD_REQUEST);
+      throw ErrorException(null, "VEHICLE.NUMBER_PLATE_ALREADY_EXISTS", HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -187,15 +187,15 @@ async getVehicle(vehicleId: string, driverId: string, lang: string) {
       driverId: new Types.ObjectId(driverId),
     });
     if (!vehicle) {
-      ErrorException(null, "VEHICLE.NOT_FOUND", HttpStatus.NOT_FOUND);
+      throw ErrorException(null, "VEHICLE.NOT_FOUND", HttpStatus.NOT_FOUND);
     }
 
-    const {images,...vehicleData} = vehicle.toObject() as any;
+    const { images, ...vehicleData } = vehicle.toObject() as any;
 
-if (vehicleData.images && vehicleData.images.length > 0 && vehicleData.images.some(img => img.status === ImageStatus.ACTIVE)) {     
-  const activeImage = vehicleData.images.find(img => img.status === ImageStatus.ACTIVE); 
-  vehicleData.imageUrl = this.s3.getPublicUrl(activeImage.s3Key);
-  vehicleData.imageS3Key = activeImage.s3Key;
+    const activeImage = images?.find((img) => img.status === ImageStatus.ACTIVE);
+    if (activeImage) {
+      vehicleData.imageUrl = this.s3.getPublicUrl(activeImage.s3Key);
+      vehicleData.imageS3Key = activeImage.s3Key;
     }
 
     return {
@@ -204,7 +204,7 @@ if (vehicleData.images && vehicleData.images.length > 0 && vehicleData.images.so
       vehicle: vehicleData,
     };
   } catch (e) {
-    ErrorException(e, "COMMON.INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
+    throw ErrorException(e, "COMMON.INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
   }
 }
 

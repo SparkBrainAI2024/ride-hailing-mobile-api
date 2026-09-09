@@ -1,6 +1,5 @@
-import { Controller, Post, Query, Body, HttpCode, HttpStatus, Logger, Get, Res } from '@nestjs/common';
+import { Controller, Get, HttpCode, HttpStatus, Logger, Query } from '@nestjs/common';
 import { WalletService } from '@libs/services/payment/src/wallet/wallet.service';
-import { Response } from 'express';
 
 /**
  * REST controller to handle eSewa and Khalti payment callbacks.
@@ -28,13 +27,12 @@ export class PaymentController {
     @Query('transactionUuid') transactionId: string,
     @Query('refId') refId?: string,
     @Query('oid') oid?: string,
-     @Query('data') data?: string,
-    @Res({ passthrough: true }) res?: Response,
+    @Query('data') data?: string,
   ): Promise<{ success: boolean; message: string; redirectUrl?: string }> {
     this.logger.log(`eSewa success callback: transactionId=${transactionId}, refId=${refId}, oid=${oid}`);
 
     if (!transactionId) {
-      return { success: false, message: 'Missing transactionId', redirectUrl: this.getRedirectUrl('failure') };
+      return { success: false, message: 'Missing transactionId', redirectUrl: this.esewaRedirect('failure') };
     }
 
     try {
@@ -42,7 +40,7 @@ export class PaymentController {
       return {
         success: true,
         message: 'Topup completed successfully',
-        redirectUrl: this.getRedirectUrl('success'),
+        redirectUrl: this.esewaRedirect('success'),
       };
     } catch (error: any) {
       this.logger.error(`eSewa success callback error: ${error.message}`);
@@ -54,7 +52,7 @@ export class PaymentController {
       return {
         success: false,
         message: error.message,
-        redirectUrl: this.getRedirectUrl('failure'),
+        redirectUrl: this.esewaRedirect('failure'),
       };
     }
   }
@@ -64,12 +62,11 @@ export class PaymentController {
   async esewaFailure(
     @Query('transactionId') transactionId: string,
     @Query('remarks') remarks?: string,
-    @Res({ passthrough: true }) res?: Response,
   ): Promise<{ success: boolean; message: string; redirectUrl?: string }> {
     this.logger.log(`eSewa failure callback: transactionId=${transactionId}, remarks=${remarks}`);
 
     if (!transactionId) {
-      return { success: false, message: 'Missing transactionId', redirectUrl: this.getRedirectUrl('failure') };
+      return { success: false, message: 'Missing transactionId', redirectUrl: this.esewaRedirect('failure') };
     }
 
     try {
@@ -77,14 +74,14 @@ export class PaymentController {
       return {
         success: true,
         message: 'Transaction marked as failed',
-        redirectUrl: this.getRedirectUrl('failure'),
+        redirectUrl: this.esewaRedirect('failure'),
       };
     } catch (error: any) {
       this.logger.error(`eSewa failure callback error: ${error.message}`);
       return {
         success: false,
         message: error.message,
-        redirectUrl: this.getRedirectUrl('failure'),
+        redirectUrl: this.esewaRedirect('failure'),
       };
     }
   }
@@ -103,12 +100,11 @@ export class PaymentController {
     @Query('status') status: string,
     @Query('transaction_id') transactionId: string,
     @Query('total_amount') totalAmount?: string,
-    @Res({ passthrough: true }) res?: Response,
   ): Promise<{ success: boolean; message: string; redirectUrl?: string }> {
     this.logger.log(`Khalti success callback: pidx=${pidx}, status=${status}, transactionId=${transactionId}`);
 
     if (!pidx) {
-      return { success: false, message: 'Missing pidx', redirectUrl: this.getRedirectUrl('failure') };
+      return { success: false, message: 'Missing pidx', redirectUrl: this.khaltiRedirect('failure') };
     }
 
     try {
@@ -118,20 +114,20 @@ export class PaymentController {
         return {
           success: true,
           message: 'Topup completed successfully',
-          redirectUrl: this.getRedirectUrl('success'),
+          redirectUrl: this.khaltiRedirect('success'),
         };
       }
       return {
         success: false,
         message: lookupResult.message || 'Khalti verification failed',
-        redirectUrl: this.getRedirectUrl('failure'),
+        redirectUrl: this.khaltiRedirect('failure'),
       };
     } catch (error: any) {
       this.logger.error(`Khalti success callback error: ${error.message}`);
       return {
         success: false,
         message: error.message,
-        redirectUrl: this.getRedirectUrl('failure'),
+        redirectUrl: this.khaltiRedirect('failure'),
       };
     }
   }
@@ -142,12 +138,11 @@ export class PaymentController {
     @Query('pidx') pidx: string,
     @Query('status') status?: string,
     @Query('transaction_id') transactionId?: string,
-    @Res({ passthrough: true }) res?: Response,
   ): Promise<{ success: boolean; message: string; redirectUrl?: string }> {
     this.logger.log(`Khalti failure callback: pidx=${pidx}, status=${status}, transactionId=${transactionId}`);
 
     if (!pidx && !transactionId) {
-      return { success: false, message: 'Missing pidx or transactionId', redirectUrl: this.getRedirectUrl('failure') };
+      return { success: false, message: 'Missing pidx or transactionId', redirectUrl: this.khaltiRedirect('failure') };
     }
 
     const txnId = transactionId || pidx;
@@ -156,26 +151,28 @@ export class PaymentController {
       return {
         success: true,
         message: 'Transaction marked as failed',
-        redirectUrl: this.getRedirectUrl('failure'),
+        redirectUrl: this.khaltiRedirect('failure'),
       };
     } catch (error: any) {
       this.logger.error(`Khalti failure callback error: ${error.message}`);
       return {
         success: false,
         message: error.message,
-        redirectUrl: this.getRedirectUrl('failure'),
+        redirectUrl: this.khaltiRedirect('failure'),
       };
     }
   }
 
-  /**
-   * Get the frontend redirect URL for success/failure.
-   * Driver payments redirect to the driver-facing frontend.
-   */
-  private getRedirectUrl(type: 'success' | 'failure'): string {
+  private getRedirectUrl(gateway: 'esewa' | 'khalti', type: 'success' | 'failure'): string {
     const baseAPI = process.env.API_BASE_URL;
-    return type === 'success'
-      ? `${baseAPI}/payment/esewa/success`
-      : `${baseAPI}/payment/esewa/failure`;
+    return `${baseAPI}/payment/${gateway}/${type}`;
+  }
+
+  private esewaRedirect(type: 'success' | 'failure'): string {
+    return this.getRedirectUrl('esewa', type);
+  }
+
+  private khaltiRedirect(type: 'success' | 'failure'): string {
+    return this.getRedirectUrl('khalti', type);
   }
 }

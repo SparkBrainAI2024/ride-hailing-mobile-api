@@ -1,5 +1,5 @@
 import { Resolver, Mutation, Args, ObjectType, Field } from '@nestjs/graphql';
-import { UseGuards, SetMetadata } from '@nestjs/common';
+import { Logger, UseGuards, SetMetadata } from '@nestjs/common';
 import { AuthGuard, RoleGuard } from '@libs/guards';
 import { CurrentUser } from '@libs/common';
 import { User, roles } from '@libs/data-access';
@@ -22,6 +22,8 @@ class AcknowledgeAndFinishResult {
 @UseGuards(AuthGuard, RoleGuard)
 @SetMetadata('roles', [roles.RIDER])
 export class AcknowledgeAndFinishResolver {
+  private readonly logger = new Logger(AcknowledgeAndFinishResolver.name);
+
   constructor(
     private readonly envService: EnvService,
   ) {}
@@ -50,11 +52,6 @@ export class AcknowledgeAndFinishResolver {
           query,
           variables: { rideId, driverId: driver._id },
         },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        },
       );
 
       const result = response.data?.data?.acknowledgeAndFinishRide;
@@ -71,9 +68,9 @@ export class AcknowledgeAndFinishResolver {
         message: 'No response from matchmaking service',
       };
     } catch (error: any) {
-      console.error('Error calling matchmaking service:', error);
+      this.logger.error(`Error calling matchmaking service: ${error?.message || error}`);
       if (error.response?.data?.errors) {
-        console.error('GraphQL errors:', JSON.stringify(error.response.data.errors, null, 2));
+        this.logger.error(`GraphQL errors: ${JSON.stringify(error.response.data.errors)}`);
         throw new Error(`Failed to acknowledge and finish ride: ${error.response.data.errors[0]?.message || 'Unknown error'}`);
       }
       throw new Error('Failed to acknowledge and finish ride');

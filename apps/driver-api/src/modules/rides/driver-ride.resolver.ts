@@ -6,8 +6,6 @@ import { User, roles, BasicResponse, DriverRideResponse, Rides } from '@libs/dat
 import { DriverRideAcceptanceService } from './driver-ride-acceptance.service';
 import { RoleGuard } from '@libs/guards/role.guard';
 import { EnvService } from '@libs/common/config/env.service';
-import { CompleteRideResult } from '@libs/data-access';
-import { PaymentMethodEnum } from '@libs/data-access/enums/payment.enum';
 import axios from 'axios';
 
 @Resolver()
@@ -19,6 +17,34 @@ export class DriverRideResolver {
     private readonly driverRideAcceptanceService: DriverRideAcceptanceService,
     private readonly envService: EnvService,
   ) { }
+
+  /**
+   * Shared helper to forward a driver ride mutation to the matchmaking service.
+   * Returns { success, message } without duplicating axios plumbing per mutation.
+   */
+  private async callMatchmakingMutation<T extends { success?: boolean; message?: string }>(
+    operationName: string,
+    mutation: string,
+    variables: Record<string, string>,
+    fallbackMessage: string,
+  ): Promise<BasicResponse> {
+    const matchmakingUrl = this.envService.getString('RIDE_MATCHMAKING_URL', 'http://localhost:3004');
+    try {
+      const response = await axios.post(`${matchmakingUrl}/graphql`, {
+        query: mutation,
+        variables,
+      });
+      const result = response.data?.data?.[operationName];
+      return {
+        success: result?.success || false,
+        message: result?.message || fallbackMessage,
+      };
+    } catch (err: any) {
+      this.logger.error(`Failed to ${operationName} via matchmaking service: ${err?.message || err}`);
+      return { success: false, message: fallbackMessage };
+    }
+  }
+
   @Roles(roles.RIDER)
   @Mutation(() => DriverRideResponse, {
     name: 'acceptRide',
@@ -48,6 +74,24 @@ export class DriverRideResolver {
     };
   }
 
+  private static readonly START_RIDE_MUTATION = `
+    mutation StartRide($rideId: String!, $driverId: String!) {
+      startRide(rideId: $rideId, driverId: $driverId) {
+        success
+        message
+      }
+    }
+  `;
+
+  private static readonly PICKUP_PASSENGER_MUTATION = `
+    mutation PickupPassenger($rideId: String!, $driverId: String!) {
+      pickupPassenger(rideId: $rideId, driverId: $driverId) {
+        success
+        message
+      }
+    }
+  `;
+
   @Roles(roles.RIDER)
   @Mutation(() => BasicResponse, {
     name: 'startRide',
@@ -58,31 +102,12 @@ export class DriverRideResolver {
     @Args('rideId') rideId: string,
   ): Promise<BasicResponse> {
     this.logger.log(`GraphQL: Driver ${user._id} starting ride ${rideId}`);
-    const matchmakingUrl = this.envService.getString('RIDE_MATCHMAKING_URL', 'http://localhost:3004');
-    try {
-      const response = await axios.post(
-        `${matchmakingUrl}/graphql`,
-        {
-          query: `
-            mutation StartRide($rideId: String!, $driverId: String!) {
-              startRide(rideId: $rideId, driverId: $driverId) {
-                success
-                message
-              }
-            }
-          `,
-          variables: { rideId, driverId: user._id.toString() },
-        },
-      );
-      const result = response.data?.data?.startRide;
-      return {
-        success: result?.success || false,
-        message: result?.message || 'Failed to start ride',
-      };
-    } catch (err: any) {
-      this.logger.error(`Failed to start ride via matchmaking service: ${err?.message || err}`);
-      return { success: false, message: 'Failed to start ride' };
-    }
+    return this.callMatchmakingMutation(
+      'startRide',
+      DriverRideResolver.START_RIDE_MUTATION,
+      { rideId, driverId: user._id.toString() },
+      'Failed to start ride',
+    );
   }
 
   @Roles(roles.RIDER)
@@ -95,31 +120,12 @@ export class DriverRideResolver {
     @Args('rideId') rideId: string,
   ): Promise<BasicResponse> {
     this.logger.log(`GraphQL: Driver ${user._id} picked up passenger for ride ${rideId}`);
-    const matchmakingUrl = this.envService.getString('RIDE_MATCHMAKING_URL', 'http://localhost:3004');
-    try {
-      const response = await axios.post(
-        `${matchmakingUrl}/graphql`,
-        {
-          query: `
-            mutation PickupPassenger($rideId: String!, $driverId: String!) {
-              pickupPassenger(rideId: $rideId, driverId: $driverId) {
-                success
-                message
-              }
-            }
-          `,
-          variables: { rideId, driverId: user._id.toString() },
-        },
-      );
-      const result = response.data?.data?.pickupPassenger;
-      return {
-        success: result?.success || false,
-        message: result?.message || 'Failed to pickup passenger',
-      };
-    } catch (err: any) {
-      this.logger.error(`Failed to pickup passenger via matchmaking service: ${err?.message || err}`);
-      return { success: false, message: 'Failed to pickup passenger' };
-    }
+    return this.callMatchmakingMutation(
+      'pickupPassenger',
+      DriverRideResolver.PICKUP_PASSENGER_MUTATION,
+      { rideId, driverId: user._id.toString() },
+      'Failed to pickup passenger',
+    );
   }
 
 

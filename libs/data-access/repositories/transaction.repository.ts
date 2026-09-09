@@ -147,9 +147,18 @@ export class TransactionRepository {
 
     // Main summary: filter transactions to only those belonging to
     // completed rides for this driver within the given date range.
+    // NOTE: every facet below requires CREDIT + RIDE_PAYMENT + COMPLETED,
+    // so we pre-filter here to shrink the pipeline before the $lookup.
     const [result] = await this.model.aggregate([
-      // All transactions for this driver
-      { $match: { driverId: driverObjectId } },
+      // All completed ride-payment credits for this driver
+      {
+        $match: {
+          driverId: driverObjectId,
+          direction: TransactionDirection.CREDIT,
+          type: TransactionType.RIDE_PAYMENT,
+          status: TransactionStatus.COMPLETED,
+        },
+      },
       // Join with completed rides for this driver within the period
       {
         $lookup: {
@@ -317,20 +326,56 @@ export class TransactionRepository {
       status: TransactionStatus.COMPLETED,
     };
 
-    const totalAgg = await this.model.aggregate([
-      { $match: filter },
-      { $group: { _id: null, totalEarnings: { $sum: "$amount" } } },
+    // Single aggregation returns count + totalEarnings together,
+    // avoiding one extra round trip vs. separate aggregation + countDocuments.
+    const totalsAgg = this.model.aggregate([
+      {
+        $match: filter,
+      },
+      {
+        $facet: {
+          total: [{ $count: "count" }],
+          totalEarnings: [{ $group: { _id: null, total: { $sum: "$amount" } } }],
+        },
+      },
     ]);
 
-    const totalEarnings = totalAgg[0]?.totalEarnings || 0;
-
-    const data = await this.model.aggregate([
-      { $match: filter },
+    // Page data: sort/skip/limit run BEFORE the $lookup so the ride join is
+    // executed only for the `limit` transactions on this page, not every
+    // transaction the driver has ever earned. Ride fields are projected to
+    // only what the response uses.
+    const dataAgg = this.model.aggregate([
+      {
+        $match: filter,
+      },
+      {
+        $sort: { createdAt: -1 },
+      },
+      {
+        $skip: page * limit,
+      },
+      {
+        $limit: limit,
+      },
       {
         $lookup: {
           from: "rides",
-          localField: "tripId",
-          foreignField: "_id",
+          let: { tripId: "$tripId" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ["$_id", "$$tripId"] },
+              },
+            },
+            {
+              $project: {
+                rideStatus: 1,
+                rideUUId: 1,
+                pickupLocation: 1,
+                dropoffLocation: 1,
+              },
+            },
+          ],
           as: "ride",
         },
       },
@@ -350,12 +395,12 @@ export class TransactionRepository {
           dropoffLocation: "$ride.dropoffLocation",
         },
       },
-      { $sort: { createdAt: -1 } },
-      { $skip: page * limit },
-      { $limit: limit },
     ]);
 
-    const total = await this.model.countDocuments(filter);
+    const [totalsResult, data] = await Promise.all([totalsAgg, dataAgg]);
+
+    const total = totalsResult[0]?.total?.[0]?.count ?? 0;
+    const totalEarnings = totalsResult[0]?.totalEarnings?.[0]?.total ?? 0;
 
     return {
       data,
