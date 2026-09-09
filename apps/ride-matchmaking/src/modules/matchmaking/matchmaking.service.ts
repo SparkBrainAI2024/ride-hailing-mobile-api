@@ -1874,8 +1874,10 @@ export class MatchmakingService {
 
   /**
    * Driver ends a SCHEDULED ride — passenger dropped off at destination.
-   * ONGOING → records rideEndedAt (status stays ONGOING until the ride is
-   * completed/finalized), publishes ride-ended and notifies the passenger.
+   * Performs end + acknowledge + complete in one atomic step:
+   * ONGOING → COMPLETED, records rideEndedAt/rideCompletedAt, marks the ride
+   * acknowledged by the driver, finalizes the booking fare (persisted at
+   * booking time), publishes ride-completed and notifies the passenger.
    */
   async endScheduledRide(rideId: string, driverId: string): Promise<{ success: boolean; message: string }> {
     this.logger.log(`Driver ${driverId} ending scheduled ride ${rideId}`);
@@ -1896,83 +1898,8 @@ export class MatchmakingService {
       }
 
       const endedAt = new Date();
-      const updatedRide = await this.ridesModel
-        .findByIdAndUpdate(ride._id, { $set: { rideEndedAt: endedAt } }, { new: true })
-        .exec();
-      if (!updatedRide) return { success: false, message: 'Failed to update ride status' };
-
-      const durationMinutes = ride.rideStartedAt
-        ? Math.max(0, Math.floor((endedAt.getTime() - ride.rideStartedAt.getTime()) / (1000 * 60)))
-        : 0;
-
-      await this.rideChannelService.publishRideEvent(ride.rideUUId, 'ride-ended', {
-        rideId: ride._id.toString(),
-        rideUUId: ride.rideUUId,
-        rideStatus: updatedRide.rideStatus,
-        rideEndedAt: endedAt.toISOString(),
-        durationInMinutes: durationMinutes,
-        message: 'Your ride has ended',
-      });
-
-      const passenger = await this.userModel.findById(ride.passengerId).exec();
-      if (passenger) {
-        await this.notificationService.createNotification(
-          {
-            title: 'Ride has ended',
-            notificationType: NotificationType.RIDE_DETAILS,
-            description: `Your scheduled ride has ended. Duration: ${durationMinutes} minutes.`,
-            ablyChannelId: updatedRide.ablyChannelId || `WG-RIDE-${ride.rideUUId}-ride-details`,
-            rideId: updatedRide._id.toString(),
-            pickupLocation: updatedRide.pickupLocation,
-            dropoffLocation: updatedRide.dropoffLocation,
-            passengerSnapshot: { fullName: passenger.fullName || 'Passenger', phone: passenger.phone || '', profileImage: '', rating: 0 },
-          },
-          passenger,
-        );
-      }
-
-      this.logger.log(`Scheduled ride ${ride.rideUUId} ended by driver ${driverId}`);
-      return { success: true, message: 'Scheduled ride ended successfully.' };
-    } catch (err: any) {
-      this.logger.error(`Failed to end scheduled ride: ${err?.message || err}`);
-      return { success: false, message: 'Failed to end scheduled ride' };
-    }
-  }
-
-  /** Driver completes a SCHEDULED ride — finalizes the booking fare (persisted
-   * at booking time) and marks the ride COMPLETED. */
-  async completeScheduledRide(rideId: string, driverId: string): Promise<{
-    success: boolean;
-    message: string;
-    data?: {
-      rideId: string;
-      rideUUId: string;
-      rideStatus: string;
-      totalDurationInMinutes: number;
-      totalDuration: string;
-      fareBreakdown: { baseFare: number; distanceCharge: number; discount: number; totalFare: number };
-      completedAt: string;
-      rideCompletedAt?: string;
-      walletAmount?: number;
-    };
-  }> {
-    this.logger.log(`Driver ${driverId} completing scheduled ride ${rideId}`);
-    try {
-      const ride = await this.ridesModel.findById(new Types.ObjectId(rideId)).exec();
-      if (!ride) return { success: false, message: 'Ride not found' };
-      if (ride.driverId?.toString() !== driverId) {
-        return { success: false, message: 'You are not the assigned driver for this ride' };
-      }
-      if (ride.rideType !== RideTypes.SCHEDULED) {
-        return { success: false, message: 'This mutation is only for SCHEDULED rides. Use completeRide for instant rides.' };
-      }
-      if (ride.rideStatus !== RideStatus.ONGOING) {
-        return { success: false, message: `Scheduled ride must be ONGOING to complete. Current: ${ride.rideStatus}` };
-      }
-
-      const rideEndedAt = ride.rideEndedAt ? new Date(ride.rideEndedAt) : new Date();
       const rideStartedAt = ride.rideStartedAt?.getTime() || 0;
-      const duration = Math.max(0, Math.floor((rideEndedAt.getTime() - rideStartedAt) / (1000 * 60)));
+      const duration = Math.max(0, Math.floor((endedAt.getTime() - rideStartedAt) / (1000 * 60)));
 
       // Booking fare is fixed at booking time — fall back to estimatedFare.
       const existingFare: any = ride.fare || {};
@@ -1989,7 +1916,9 @@ export class MatchmakingService {
           {
             $set: {
               rideStatus: RideStatus.COMPLETED,
-              rideEndedAt,
+              rideEndedAt: endedAt,
+              rideCompletedAt: endedAt,
+              isAcknowledgeByDriver: true,
               estimatedFare: totalFare,
               actualCompletedDurationInMinutes: duration,
               fare: {
@@ -2018,58 +1947,17 @@ export class MatchmakingService {
           { new: true },
         )
         .exec();
-      if (!updatedRide) return { success: false, message: 'Failed to update scheduled ride to completed' };
+      if (!updatedRide) return { success: false, message: 'Failed to update scheduled ride' };
 
-      return await this.finalizeScheduledRideCompletion(updatedRide, existingFare, {
-        baseFareAmount,
-        distanceFare,
-        discountAmount,
-        finalAmount,
-        actualCompleteDurationInMinutes: duration,
-      }, driverId);
-    } catch (err: any) {
-      this.logger.error('Failed to complete scheduled ride: ' + (err?.message || err));
-      return { success: false, message: 'Failed to complete scheduled ride' };
-    }
-  }
-
-  private async finalizeScheduledRideCompletion(
-    updatedRide: any,
-    existingFare: any,
-    amounts: {
-      baseFareAmount: number;
-      distanceFare: number;
-      discountAmount: number;
-      finalAmount: number;
-      actualCompleteDurationInMinutes: number;
-    },
-    driverId: string,
-  ): Promise<{
-    success: boolean;
-    message: string;
-    data?: {
-      rideId: string;
-      rideUUId: string;
-      rideStatus: string;
-      totalDurationInMinutes: number;
-      totalDuration: string;
-      fareBreakdown: { baseFare: number; distanceCharge: number; discount: number; totalFare: number };
-      completedAt: string;
-      rideCompletedAt?: string;
-      walletAmount?: number;
-    };
-  }> {
-    try {
-      const { baseFareAmount, distanceFare, discountAmount, finalAmount, actualCompleteDurationInMinutes } = amounts;
-      const hrs = Math.floor(actualCompleteDurationInMinutes / 60);
-      const mins = actualCompleteDurationInMinutes % 60;
+      const hrs = Math.floor(duration / 60);
+      const mins = duration % 60;
       const durationStr = hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
 
-      await this.rideChannelService.publishRideCompleted(updatedRide.rideUUId, {
-        rideId: updatedRide._id.toString(),
-        rideUUId: updatedRide.rideUUId,
+      await this.rideChannelService.publishRideCompleted(ride.rideUUId, {
+        rideId: ride._id.toString(),
+        rideUUId: ride.rideUUId,
         rideStatus: updatedRide.rideStatus,
-        totalDurationInMinutes: actualCompleteDurationInMinutes,
+        totalDurationInMinutes: duration,
         totalDuration: durationStr,
         fareBreakdown: {
           baseFare: baseFareAmount,
@@ -2079,52 +1967,34 @@ export class MatchmakingService {
           subTotal: existingFare.subTotal || 0,
           promocodeName: existingFare.promoCodeName || null,
         },
-        completedAt: updatedRide.rideEndedAt.toISOString(),
+        completedAt: endedAt.toISOString(),
       });
 
-      const passenger = await this.userModel.findById(updatedRide.passengerId).exec();
+      const passenger = await this.userModel.findById(ride.passengerId).exec();
       if (passenger) {
         await this.notificationService.createNotification(
           {
             title: 'Ride completed',
             notificationType: NotificationType.RIDE_COMPLETE_NOTIFICATION,
             description: `Ride completed. Duration: ${durationStr}. Fare: Rs.${finalAmount}`,
-            ablyChannelId: updatedRide.ablyChannelId || `WG-RIDE-${updatedRide.rideUUId}-ride-details`,
+            ablyChannelId: updatedRide.ablyChannelId || `WG-RIDE-${ride.rideUUId}-ride-details`,
             rideId: updatedRide._id.toString(),
             pickupLocation: updatedRide.pickupLocation,
             dropoffLocation: updatedRide.dropoffLocation,
             distanceInKm: updatedRide.distanceInKm || 0,
             estimatedTimeInMinutes: updatedRide.estimatedTimeInMinutes,
-            actualTimeInMinutes: actualCompleteDurationInMinutes,
+            actualTimeInMinutes: duration,
             passengerSnapshot: { fullName: passenger.fullName || 'Passenger', phone: passenger.phone || '', profileImage: '', rating: 0 },
           },
           passenger,
         );
       }
 
-      return {
-        success: true,
-        message: 'Scheduled ride completed successfully.',
-        data: {
-          rideId: updatedRide._id.toString(),
-          rideUUId: updatedRide.rideUUId,
-          rideStatus: updatedRide.rideStatus,
-          totalDurationInMinutes: actualCompleteDurationInMinutes,
-          totalDuration: durationStr,
-          fareBreakdown: {
-            baseFare: baseFareAmount,
-            distanceCharge: distanceFare,
-            discount: discountAmount,
-            totalFare: finalAmount,
-          },
-          completedAt: updatedRide.rideEndedAt.toISOString(),
-          rideCompletedAt: updatedRide.rideEndedAt.toISOString(),
-          walletAmount: await this.walletService.getBalance(driverId),
-        },
-      };
+      this.logger.log(`Scheduled ride ${ride.rideUUId} ended and completed by driver ${driverId}`);
+      return { success: true, message: 'Scheduled ride ended and completed successfully.' };
     } catch (err: any) {
-      this.logger.error('Failed to finalize scheduled ride: ' + (err?.message || err));
-      return { success: false, message: 'Failed to complete scheduled ride' };
+      this.logger.error(`Failed to end scheduled ride: ${err?.message || err}`);
+      return { success: false, message: 'Failed to end scheduled ride' };
     }
   }
 

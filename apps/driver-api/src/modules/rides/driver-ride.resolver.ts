@@ -183,7 +183,7 @@ export class DriverRideResolver {
   @Roles(roles.RIDER)
   @Mutation(() => BasicResponse, {
     name: 'endScheduledRide',
-    description: 'Driver ends a SCHEDULED ride - passenger dropped off, records rideEndedAt (status stays ONGOING until completed) and notifies the passenger',
+    description: 'Driver ends a SCHEDULED ride - passenger dropped off. Ends + acknowledges + completes: sets status to COMPLETED, finalizes the booking fare and notifies the passenger',
   })
   async endScheduledRide(
     @CurrentUser() user: User,
@@ -196,19 +196,6 @@ export class DriverRideResolver {
       { rideId, driverId: user._id.toString() },
       'Failed to end scheduled ride',
     );
-  }
-
-  @Roles(roles.RIDER)
-  @Mutation(() => Rides, {
-    name: 'completeScheduledRide',
-    description: 'Complete a SCHEDULED ride - finalizes the booking fare, sets status to COMPLETED, publishes ride-completed Ably event with fare breakdown',
-  })
-  async completeScheduledRide(
-    @CurrentUser() user: User,
-    @Args('rideId') rideId: string,
-  ): Promise<Rides> {
-    this.logger.log(`GraphQL: Driver ${user._id} completing scheduled ride ${rideId}`);
-    return this.driverRideAcceptanceService.completeScheduledRide({ rideId }, user._id.toString());
   }
 
   @Roles(roles.RIDER)
