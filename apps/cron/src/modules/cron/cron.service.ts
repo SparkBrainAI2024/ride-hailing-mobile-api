@@ -326,33 +326,18 @@ export class CronService {
           const triggerAt = this.resolveOngoingTriggerTime(ride);
           if (triggerAt === null || now < triggerAt) continue;
 
-          const updated = await this.ridesModel
-            .findOneAndUpdate(
-              { _id: ride._id, rideStatus: RideStatus.CONFIRMED },
-              {
-                $set: {
-                  rideStatus: RideStatus.ONGOING,
-                  rideStartedAt: now,
-                },
-              },
-              { new: true },
-            )
-            .exec();
-          if (!updated) continue; // raced with another worker / status change
-          transitioned++;
-
-          // Publish the full ride details on the ride's Ably channel.
-          await this.publishOngoingRideDetails(updated);
-          published++;
-
-          // Subscribe this ride's driver to their personal location channel so
-          // live location updates are tracked while the ride is ONGOING. The
-          // cron process never holds Ably subscriptions itself (they are owned
-          // by the matchmaking process), so we delegate via its GraphQL
-          // mutation — the same one used when a driver goes online.
-          await this.notifyMatchmakingDriverLocationSubscription(
-            updated.driverId?.toString(),
+          // Delegate the whole ONGOING transition to the ride-matchmaking
+          // service. That process owns the Ably connection, so it performs the
+          // CONFIRMED→ONGOING DB update, publishes the ride details/status on
+          // the Ably channel, AND subscribes the driver's personal location
+          // channel for live tracking — atomically. The cron process is not
+          // connected to Ably, so it must not publish or subscribe here (that
+          // is what caused the earlier "Ably not initialized" / AggregateError
+          // warnings during the scheduled-ride sweep).
+          const didTransition = await this.notifyMatchmakingScheduledRideOngoing(
+            ride._id.toString(),
           );
+          if (didTransition) transitioned++;
         } catch (err: any) {
           errors++;
           this.logger.warn(
@@ -375,38 +360,43 @@ export class CronService {
 
 
   /**
-   * Ask the ride-matchmaking service to subscribe a driver to their personal
-   * location channel (the same mutation used when a driver goes online or
-   * accepts a ride). The cron process does not hold Ably subscriptions itself,
-   * so any ONGOING transition it performs must go through the matchmaking
-   * service. Best-effort: failures are logged as warnings and never fail the
-   * sweep.
+   * Ask the ride-matchmaking service to transition a CONFIRMED scheduled ride
+   * to ONGOING. The matchmaking process owns the Ably connection, so it does
+   * the DB update, publishes the ride details + status, and subscribes the
+   * driver's personal location channel — all in one call. The cron process is
+   * not connected to Ably, so it must NOT publish/subscribe here itself.
+   *
+   * Returns true only if the ride-matchmaking service actually transitioned
+   * the ride (i.e. it was CONFIRMED). Best-effort: failures are logged as
+   * warnings and never fail the sweep.
    */
-  private async notifyMatchmakingDriverLocationSubscription(
-    driverId?: string | null,
-  ): Promise<void> {
-    if (!driverId) return;
-
+  private async notifyMatchmakingScheduledRideOngoing(
+    rideId: string,
+  ): Promise<boolean> {
     const matchmakingUrl = this.envService.getString(
       'RIDE_MATCHMAKING_URL',
       'http://localhost:3004',
     );
-    const mutation = `mutation Subscribe($driverId: String!) { subscribeToDriverLocationChannel(driverId: $driverId) { success message } }`;
+    const mutation = `mutation MarkScheduledRideOngoing($rideId: String!) { markScheduledRideOngoing(rideId: $rideId) { success message } }`;
 
     try {
       const response = await axios.post(
         `${matchmakingUrl}/graphql`,
-        { query: mutation, variables: { driverId } },
+        { query: mutation, variables: { rideId } },
         { timeout: 10000 },
       );
-      const result = response.data?.data;
+      const ok =
+        response.data?.data?.markScheduledRideOngoing?.success === true;
       this.logger.log(
-        `Matchmaking location-channel subscription for driver ${driverId}: ${result?.subscribeToDriverLocationChannel?.message || 'OK'}`,
+        `markScheduledRideOngoing for ride ${rideId}: ${response.data?.data?.markScheduledRideOngoing?.message ||
+        (ok ? 'OK' : 'not transitioned (already ONGOING or missing)')}`,
       );
+      return ok;
     } catch (error: any) {
       this.logger.warn(
-        `Failed to subscribe driver ${driverId} location channel via matchmaking: ${error?.message || error}`,
+        `Failed to mark scheduled ride ${rideId} ONGOING via matchmaking: ${error?.message || error}`,
       );
+      return false;
     }
   }
 

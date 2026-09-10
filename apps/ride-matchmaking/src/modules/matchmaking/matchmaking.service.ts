@@ -1818,7 +1818,229 @@ export class MatchmakingService {
     }
   }
 
+// ─── Scheduled ride ONGOING transition (invoked by the cron scheduler) ──────
+  // The dedicated `cron` app detects when a CONFIRMED scheduled ride's buffer
+  // window elapses, but it runs in a separate process that does NOT hold an
+  // Ably connection. It therefore calls this method — which lives in the
+  // ride-matchmaking process where Ably IS initialized — to atomically: (1)
+  // transition the ride CONFIRMED → ONGOING, (2) publish the full ride
+  // details + ride-status-update on the ride's Ably channel, and (3) subscribe
+  // the driver's personal location channel for live tracking.
+
+  /**
+   * Transition a CONFIRMED scheduled ride to ONGOING, publish its Ably details
+   * and subscribe the driver's location channel. Idempotent: only flips a ride
+   * that is currently CONFIRMED.
+   */
+  async markScheduledRideOngoing(
+    rideId: string,
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      const now = new Date();
+      const updated = await this.ridesModel
+        .findOneAndUpdate(
+          {
+            _id: new Types.ObjectId(rideId),
+            rideStatus: RideStatus.CONFIRMED,
+            deleted: false,
+          },
+          { $set: { rideStatus: RideStatus.ONGOING, rideStartedAt: now } },
+          { new: true },
+        )
+        .exec();
+
+      if (!updated) {
+        return {
+          success: false,
+          message: 'Scheduled ride is not CONFIRMED (already transitioned or missing).',
+        };
+      }
+
+      // Publish full ride details + status update on the ride's Ably channel
+      // (this process owns the Ably connection).
+      await this.publishScheduledRideOngoingDetails(updated);
+
+      // Subscribe (or resubscribe) the driver's personal location channel so
+      // live location updates keep flowing for the duration of the ride.
+      const driverId = updated.driverId?.toString();
+      if (driverId) {
+        await this.subscribeToDriverLocationChannel(driverId)
+          .then(() => {
+            this.logger.log(`Scheduled-ongoing: subscribed driver ${driverId} to location channel`);
+          })
+          .catch((err: any) =>
+            this.logger.warn(
+              `Scheduled-ongoing: failed to subscribe driver ${driverId} location channel: ${err?.message || err}`,
+            ),
+          );
+      }
+
+      this.logger.log(`Scheduled ride ${updated.rideUUId} transitioned to ONGOING`);
+      return { success: true, message: 'Scheduled ride transitioned to ONGOING successfully.' };
+    } catch (err: any) {
+      this.logger.error(`Failed to mark scheduled ride ${rideId} ONGOING: ${err?.message || err}`);
+      return { success: false, message: 'Failed to mark scheduled ride ONGOING.' };
+    }
+  }
   // ─── Scheduled ride lifecycle (driver-api) ─────────────────────────────────
+
+  /**
+   * Publish the full ride-details payload + status update for a scheduled ride
+   * that has just become ONGOING. Mirrors the previous in-cron implementation,
+   * moved here so Ably publishing happens where the connection is initialized.
+   */
+  private async publishScheduledRideOngoingDetails(ride: RidesDocument): Promise<void> {
+    const driverId = ride.driverId?.toString();
+    const passengerId = ride.passengerId?.toString();
+
+    const [driverUser, passengerUser, driverDetails, passengerDetails, vehicle] =
+      await Promise.all([
+        driverId
+          ? this.userModel.findById(new Types.ObjectId(driverId)).exec()
+          : Promise.resolve(null),
+        passengerId
+          ? this.userModel.findById(new Types.ObjectId(passengerId)).exec()
+          : Promise.resolve(null),
+        driverId
+          ? this.userDetailsModel.findOne({ userId: new Types.ObjectId(driverId) }).exec()
+          : Promise.resolve(null),
+        passengerId
+          ? this.userDetailsModel.findOne({ userId: new Types.ObjectId(passengerId) }).exec()
+          : Promise.resolve(null),
+        ride.vehicleId
+          ? this.vehicleModel.findById(ride.vehicleId).exec()
+          : Promise.resolve(null),
+      ]);
+
+    const driverImage = getActiveProfileImageUrl(
+      driverDetails?.profileImages,
+      (key) => this.s3.getPublicUrl(key),
+    );
+    const passengerImage = getActiveProfileImageUrl(
+      passengerDetails?.profileImages,
+      (key) => this.s3.getPublicUrl(key),
+    );
+
+    const activeVehicleImage = vehicle?.images?.find(
+      (img: any) => img.status === 'ACTIVE',
+    );
+    const vehicleImage = activeVehicleImage
+      ? this.s3.getPublicUrl(activeVehicleImage.s3Key)
+      : vehicle?.images?.length
+        ? this.s3.getPublicUrl(vehicle.images[0].s3Key)
+        : null;
+
+    const driverLocationChannelId =
+      RideChannelService.getDriverLocationChannelName(driverId || '');
+
+    const payload = this.buildScheduledRideOngoingPayload(ride, {
+      driverUser,
+      passengerUser,
+      driverDetails,
+      passengerDetails,
+      vehicle,
+      driverImage,
+      passengerImage,
+      vehicleImage,
+      driverLocationChannelId,
+    });
+
+    await this.rideChannelService.publishRideDetails(ride.rideUUId, payload as any);
+    await this.rideChannelService.publishRideStatusUpdate(ride.rideUUId, {
+      rideId: ride._id.toString(),
+      rideUUId: ride.rideUUId,
+      status: RideStatus.ONGOING,
+      updatedAt: new Date().toISOString(),
+    });
+    this.logger.log(`Published ongoing ride details for scheduled ride ${ride.rideUUId}`);
+  }
+
+  /**
+   * Build the ride-details payload published when a scheduled ride goes ONGOING.
+   */
+  private buildScheduledRideOngoingPayload(
+    ride: RidesDocument,
+    ctx: {
+      driverUser: UserDocument | null;
+      passengerUser: UserDocument | null;
+      driverDetails: UserDetailsDocument | null;
+      passengerDetails: UserDetailsDocument | null;
+      vehicle: VehicleDocument | null;
+      driverImage: string | null;
+      passengerImage: string | null;
+      vehicleImage: string | null;
+      driverLocationChannelId: string;
+    },
+  ): Record<string, any> {
+    const rideStartedAt = ride.rideStartedAt || new Date();
+    return {
+      rideId: ride._id.toString(),
+      rideUUId: ride.rideUUId,
+      rideStatus: RideStatus.ONGOING,
+      rideStartedAt: rideStartedAt.toISOString(),
+      bookingTime: ride.bookingTime ? new Date(ride.bookingTime).toISOString() : null,
+      ablyChannelId: ride.ablyChannelId || RideChannelService.getChannelName(ride.rideUUId),
+      pickupLocation: ride.pickupLocation
+        ? {
+            address: ride.pickupLocation.address,
+            coordinates: ride.pickupLocation.coordinates,
+            city: ride.pickupLocation.city,
+          }
+        : null,
+      dropoffLocation: ride.dropoffLocation
+        ? {
+            address: ride.dropoffLocation.address,
+            coordinates: ride.dropoffLocation.coordinates,
+            city: ride.dropoffLocation.city,
+          }
+        : null,
+      distanceInKm: ride.distanceInKm ?? 0,
+      estimatedFare: ride.estimatedFare ?? 0,
+      estimatedTimeInMinutes: ride.estimatedTimeInMinutes ?? 0,
+      noOfPassengers: ride.noOfPassengers ?? 1,
+      schedule: ride.schedule
+        ? {
+            bookingType: ride.schedule.bookingType ?? null,
+            bookingDate: ride.schedule.bookingDate
+              ? new Date(ride.schedule.bookingDate).toISOString()
+              : null,
+            day: ride.schedule.day ?? null,
+            timeSlots: ride.schedule.timeSlots ?? [],
+            pickupBufferTimeMinutes: ride.schedule.pickupBufferTimeMinutes ?? 0,
+            vehicleType: ride.schedule.vehicleType ?? null,
+          }
+        : null,
+      driver: {
+        driverId: ride.driverId?.toString() ?? null,
+        fullName: ctx.driverDetails?.fullName || ctx.driverUser?.fullName || 'Driver',
+        email: ctx.driverUser?.email ?? null,
+        phone: ctx.driverUser?.phone ?? '',
+        profileImage: ctx.driverImage,
+        rating: ctx.driverDetails?.rating ?? 0,
+        driverLocationChannelId: ctx.driverLocationChannelId,
+      },
+      vehicle: {
+        vehicleId: ctx.vehicle?._id?.toString() ?? null,
+        name: ctx.vehicle?.name ?? null,
+        vehicleModel: ctx.vehicle?.vehicleModel ?? null,
+        vehicleType: ctx.vehicle?.vehicleType ?? ride.schedule?.vehicleType ?? null,
+        hasAc: ctx.vehicle?.isAcType ?? false,
+        color: ctx.vehicle?.color ?? null,
+        numberPlate: ctx.vehicle?.numberPlate ?? null,
+        year: ctx.vehicle?.year ?? null,
+        vehicleModelType: ctx.vehicle?.vehicleModelType ?? null,
+        image: ctx.vehicleImage,
+      },
+      passenger: {
+        passengerId: ride.passengerId?.toString() ?? null,
+        fullName: ctx.passengerDetails?.fullName || ctx.passengerUser?.fullName || 'Passenger',
+        email: ctx.passengerUser?.email ?? null,
+        phone: ctx.passengerUser?.phone ?? '',
+        profileImage: ctx.passengerImage,
+        rating: ctx.passengerDetails?.rating ?? 0,
+      },
+    };
+  }
 
   /**
    * Driver starts a SCHEDULED (booking) ride — passenger is onboard and the

@@ -405,6 +405,18 @@ export class MatchmakingResolver {
   }
 
   @Mutation(() => BasicResult, {
+    name: "markScheduledRideOngoing",
+    description:
+      "Transition a CONFIRMED scheduled ride to ONGOING: switches the DB status, publishes ride details + status on the Ably channel, and subscribes the driver's personal location channel. Called by the cron scheduler when a scheduled ride's buffer window elapses.",
+  })
+  async markScheduledRideOngoing(
+    @Args("rideId") rideId: string,
+  ): Promise<BasicResult> {
+    this.logger.log(`GraphQL: Marking scheduled ride ${rideId} ONGOING`);
+    return this.matchmakingService.markScheduledRideOngoing(rideId);
+  }
+
+  @Mutation(() => BasicResult, {
     name: "endScheduledRide",
     description:
       "Driver ends a SCHEDULED ride - passenger dropped off. Ends + acknowledges + completes: sets status to COMPLETED, finalizes the booking fare, publishes ride-completed and notifies passenger",
