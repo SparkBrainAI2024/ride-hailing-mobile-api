@@ -22,7 +22,9 @@ import { DriverDocumentService } from '@libs/services/driver-document/driver-doc
 import { AvailabilityService } from '@libs/services/availability/availability.service';
 import { S3Service } from '@libs/s3';
 import { RideChannelService } from '@libs/services/ably';
+import { EnvService } from '@libs/common/config/env.service';
 import { getActiveProfileImageUrl } from '@libs/common/utils/entity.utils';
+import axios from 'axios';
 
 /**
  * CronService
@@ -62,6 +64,7 @@ export class CronService {
     private readonly availabilityService: AvailabilityService,
     private readonly s3: S3Service,
     private readonly rideChannelService: RideChannelService,
+    private readonly envService: EnvService,
   ) {}
 
   // ─── Stale-driver sweep (runs every 5 minutes) ──────────────────────────────────
@@ -341,6 +344,15 @@ export class CronService {
           // Publish the full ride details on the ride's Ably channel.
           await this.publishOngoingRideDetails(updated);
           published++;
+
+          // Subscribe this ride's driver to their personal location channel so
+          // live location updates are tracked while the ride is ONGOING. The
+          // cron process never holds Ably subscriptions itself (they are owned
+          // by the matchmaking process), so we delegate via its GraphQL
+          // mutation — the same one used when a driver goes online.
+          await this.notifyMatchmakingDriverLocationSubscription(
+            updated.driverId?.toString(),
+          );
         } catch (err: any) {
           errors++;
           this.logger.warn(
@@ -361,6 +373,42 @@ export class CronService {
     }
   }
 
+
+  /**
+   * Ask the ride-matchmaking service to subscribe a driver to their personal
+   * location channel (the same mutation used when a driver goes online or
+   * accepts a ride). The cron process does not hold Ably subscriptions itself,
+   * so any ONGOING transition it performs must go through the matchmaking
+   * service. Best-effort: failures are logged as warnings and never fail the
+   * sweep.
+   */
+  private async notifyMatchmakingDriverLocationSubscription(
+    driverId?: string | null,
+  ): Promise<void> {
+    if (!driverId) return;
+
+    const matchmakingUrl = this.envService.getString(
+      'RIDE_MATCHMAKING_URL',
+      'http://localhost:3004',
+    );
+    const mutation = `mutation Subscribe($driverId: String!) { subscribeToDriverLocationChannel(driverId: $driverId) { success message } }`;
+
+    try {
+      const response = await axios.post(
+        `${matchmakingUrl}/graphql`,
+        { query: mutation, variables: { driverId } },
+        { timeout: 10000 },
+      );
+      const result = response.data?.data;
+      this.logger.log(
+        `Matchmaking location-channel subscription for driver ${driverId}: ${result?.subscribeToDriverLocationChannel?.message || 'OK'}`,
+      );
+    } catch (error: any) {
+      this.logger.warn(
+        `Failed to subscribe driver ${driverId} location channel via matchmaking: ${error?.message || error}`,
+      );
+    }
+  }
 
   /**
    * Resolve the timestamp at which a scheduled ride should flip to ONGOING:

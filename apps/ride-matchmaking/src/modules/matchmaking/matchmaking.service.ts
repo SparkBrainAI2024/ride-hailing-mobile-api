@@ -1201,6 +1201,18 @@ export class MatchmakingService {
         }, passenger);
       }
 
+      // Subscribe (or resubscribe) to the driver's location channel so live
+      // location updates are tracked for the duration of the ONGOING ride.
+      await this.subscribeToDriverLocationChannel(driverId)
+        .then(() => {
+          this.logger.log(`Successfully subscribed driver ${driverId} to location channel on ride start`);
+        })
+        .catch((err: any) =>
+          this.logger.warn(
+            `Failed to subscribe driver ${driverId} location channel on ride start: ${err?.message || err}`,
+          ),
+        );
+
       this.logger.log(`Ride ${ride.rideUUId} started by driver ${driverId}`);
       return { success: true, message: 'Ride started successfully.' };
     } catch (err: any) {
@@ -1866,6 +1878,18 @@ export class MatchmakingService {
           passenger,
         );
       }
+
+      // Subscribe (or resubscribe) to the driver's location channel so live
+      // location updates are tracked for the duration of the ONGOING ride.
+      await this.subscribeToDriverLocationChannel(driverId)
+        .then(() => {
+          this.logger.log(`Successfully subscribed driver ${driverId} to location channel on scheduled ride start`);
+        })
+        .catch((err: any) =>
+          this.logger.warn(
+            `Failed to subscribe driver ${driverId} location channel on scheduled ride start: ${err?.message || err}`,
+          ),
+        );
 
       this.logger.log(`Scheduled ride ${ride.rideUUId} started by driver ${driverId}`);
       return { success: true, message: 'Scheduled ride started successfully.' };
