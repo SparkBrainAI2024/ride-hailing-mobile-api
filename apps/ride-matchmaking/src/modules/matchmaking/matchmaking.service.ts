@@ -1824,9 +1824,12 @@ export class MatchmakingService {
       if (ride.rideType !== RideTypes.SCHEDULED) {
         return { success: false, message: 'This mutation is only for SCHEDULED rides. Use startRide for instant rides.' };
       }
-      const allowedStatuses = [RideStatus.BOOKING, RideStatus.CONFIRMED, RideStatus.PICKUP];
+      const allowedStatuses = [RideStatus.ONGOING];
       if (!allowedStatuses.includes(ride.rideStatus)) {
-        return { success: false, message: `Scheduled ride must be BOOKING, CONFIRMED or PICKUP to start. Current: ${ride.rideStatus}` };
+        return { success: false, message: `Scheduled ride must be ONGOING to start. Current: ${ride.rideStatus}` };
+      }
+      if(ride.rideStartedAt) {
+        return { success: false, message: 'Scheduled ride has already been started' };
       }
 
       const updatedRide = await this.ridesModel
